@@ -19,7 +19,7 @@ export const  login = (username, password) => dispatch => {
 
 
     const body = JSON.stringify({username, password})
-    console.log(body)
+    
 
     axios.post( urlbase + 'auth/signin', body, config)
     .then(res => {
@@ -68,8 +68,9 @@ export const logout = () => (dispatch, getstate) =>{
 
 
 
+
 export const tokenConfig = getState => {
-    const token = getState().auth.token
+        const token = getState().auth.accessToken;
 
     const config ={
         headers: {
@@ -78,8 +79,9 @@ export const tokenConfig = getState => {
     }
 
     if (token){
-        config.headers['Authorization'] = `Token ${token}`
+        config.headers['x-access-token'] = token
     }
 
     return config
 }
+

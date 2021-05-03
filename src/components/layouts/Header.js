@@ -10,10 +10,10 @@ class Header extends Component {
 
         const authLinks = (
             <ul>
-                <li><Link  to="/">Pilot</Link></li>
-                <li><Link  to="/holo">Holo</Link></li>                
-                <li><a href='/bugs'>Bugs</a> </li>
-                <li><a href='/solutions'>Solutions</a> </li>                
+                <li><Link  to="/">Home</Link></li>
+                <li><Link  to="/holo">Salute</Link></li>                
+                <li><Link  to="/bugs">Bugs</Link></li>                                
+                <li><Link  to="/solutions">Solutions</Link></li>
 
                 <li>
                    
@@ -29,13 +29,10 @@ class Header extends Component {
 
 
         const guestLinks = (
-            <ul>
-                 
+            <ul>                 
                 <li><Link  to="/register">Register</Link></li>
                 <li><Link  to="/login">Login</Link></li>
-                <li><Link  to="/">Pilot</Link></li>
-                <li><Link  to="/holo">Holo</Link></li>                
-                
+                <li><Link  to="/">Home</Link></li>
             </ul>
         )
 

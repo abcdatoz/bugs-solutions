@@ -8,6 +8,7 @@ import Register from './components/accounts/Register'
 
 import Home from './components/Home'
 import Hello from './components/Hello'
+import Bug from './components/Bug'
 
 import { Route, Switch, } from 'react-router-dom'
 
@@ -24,6 +25,7 @@ function App() {
           <Route exact path="/login" component={Login} />
 
           <PrivateRoute exact path="/holo" component={Hello} />
+          <PrivateRoute exact path="/bugs" component={Bug} />
         </Switch>
 
       </div>

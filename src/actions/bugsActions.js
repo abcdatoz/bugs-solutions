@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { tokenConfig }  from './auth'
+import { tokenConfig } from './auth'
 
 
 export const GET_BUGS ='GET_BUGS'
@@ -8,10 +8,16 @@ export const EDIT_BUG ='EDIT_BUG'
 export const DELETE_BUG ='DELETE_BUG'
 
 
+const urlbase ='http://localhost:8080/api/'
 
-export const getBugs = (dispatch, getState) => {
-    axios.get('/api/bugs/', tokenConfig(getState))
+
+
+export const getBugs = () => (dispatch, getState) => {
+
+    
+    axios.get(urlbase + 'bugs/', tokenConfig(getState))
         .then( res => {
+
             dispatch({
                 type: GET_BUGS,
                 payload: res.data
@@ -22,7 +28,7 @@ export const getBugs = (dispatch, getState) => {
 
 export const addBug = (registro) => (dispatch, getState) => {
 
-    axios.post('/api/bugs/', registro, tokenConfig(getState))
+    axios.post(urlbase + 'bugs/', registro, tokenConfig(getState))
         .then (res => {
             dispatch({
                 type: ADD_BUG,
@@ -32,8 +38,8 @@ export const addBug = (registro) => (dispatch, getState) => {
         .catch(err => console.log(err))
         
 }
-export const editBug = (registro, id) => (dispatch, getState) => {
-    axios.put(`/api/bugs/${id}`, registro, tokenConfig(getState))
+export const editBug = (registro, id) => (dispatch, getState) => {    
+    axios.put(urlbase + `bugs/${id}`, registro, tokenConfig(getState))
         .then (res => {
             dispatch({
                 type: EDIT_BUG,
@@ -44,7 +50,7 @@ export const editBug = (registro, id) => (dispatch, getState) => {
 }
 
 export const deleteBug = (id) => (dispatch, getState) => {
-    axios.delete(`/api/bugs/${id}`, tokenConfig(getState))
+    axios.delete(urlbase + `bugs/${id}`,  tokenConfig(getState))    
         .then( res => {
             dispatch ({
                 type: DELETE_BUG,
@@ -53,3 +59,4 @@ export const deleteBug = (id) => (dispatch, getState) => {
         })
         .catch(err => console.log(err))
 }
+
