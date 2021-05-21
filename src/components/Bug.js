@@ -1,9 +1,18 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useRef, useEffect} from 'react'
 import {useDispatch, useSelector} from 'react-redux'
 import {getBugs,addBug,editBug,deleteBug} from '../actions/bugsActions'
+import ReactDOM from 'react-dom'
  
+/**
+ * https://codesandbox.io/s/7m66w7xn90?file=/src/index.js:1269-1285
+ * https://reactjs.org/docs/uncontrolled-components.html#the-file-input-tag
+ * https://stackoverflow.com/questions/60370260/how-to-fix-failed-to-set-the-value-property-on-htmlinputelement-for-react
+ * https://stackoverflow.com/questions/41610811/react-js-how-to-send-a-multipart-form-data-to-server
+ * https://github.com/expressjs/multer/blob/master/README.md
+ */
 
 
+const useForceUpdate = () =>  useState()[1]
 
 const Bug = () => {
 
@@ -12,9 +21,16 @@ const Bug = () => {
     const [bugId, setBugId] = useState('')
     const [bug_address, setBug_address] = useState('')
     const [bug_description, setBug_description] = useState('')
-    const [bug_image, setBug_image] = useState('')
+    const [bug_image, setBug_image] = useState()
     const [bug_date, setBug_date] = useState(new Date())
     const [mode, setMode] = useState('list')
+
+
+
+
+    //refs
+    const fileInput = useRef(null)
+    const forceUpdate = useForceUpdate()
 
     //selectors
     const bugs  = useSelector(state => state.bugs.lista)
@@ -29,6 +45,34 @@ const Bug = () => {
 
     }, [bugs])
 
+/*
+    useEffect (()=> {
+        window.addEventListener("keyup", clickFileInput)
+        return () => window.removeEventListener("keyup",clickFileInput)
+    })
+
+    function clickFileInput(e){
+        if(fileInput.current.nextsibling.contains(document.activeElement)){
+            if(e.keyCode === 32){
+                fileInput.current.click()
+            }
+        }
+    }
+
+    function fileNames() {
+        const { current } = fileInput;
+    
+        if (current && current.files.length > 0) {
+          let messages = [];
+          for (let file of current.files) {
+            messages = messages.concat(<p key={file.name}>{file.name}</p>);
+          }
+          return messages;
+        }
+        return null;
+      }
+    
+*/
 
     const add = () =>{        
         setMode('new')
@@ -60,8 +104,15 @@ const Bug = () => {
         }
 
 
+        const formData = new FormData()
+
+        formData.append('bug_address',bug_address)
+        formData.append('bug_description',bug_description)
+        formData.append('bug_image', fileInput.current.files)
+        formData.append('bug_date',bug_date)
+
         mode === 'new' 
-            ? dispatch(addBug(registro))
+            ? dispatch(addBug(formData))
             : dispatch(editBug(registro, bugId))
         
 
@@ -119,6 +170,10 @@ const Bug = () => {
     const formulario = (
         <>
 
+
+ 
+
+
          
          <form>
                 <input 
@@ -139,15 +194,15 @@ const Bug = () => {
                 />
                 <br/>
 
+
                 <input 
-                    type="text"
+                    type="file"
                     placeholder="how's the bug?"
                     name="bug_image"
-                    value={bug_image}
-                    onChange={ e => setBug_image(e.target.value)}
+                    ref={fileInput}
+                    //onChange={forceUpdate}                    
                 />
-                <br/>
-                <input type="file" id="myFile" />
+                 
 
                 <br/>
                 <button type="button" onClick={guardar}>Guardar</button>
