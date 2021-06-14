@@ -85,3 +85,20 @@ export const tokenConfig = getState => {
     return config
 }
 
+export const tokenConfigMultipart = getState => {
+    const token = getState().auth.accessToken;
+
+    const config ={
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }
+
+    if (token){
+        config.headers['x-access-token'] = token
+    }
+
+    return config
+}
+
+

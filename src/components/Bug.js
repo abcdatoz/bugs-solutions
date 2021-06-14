@@ -1,7 +1,9 @@
-import React, {useState, useRef, useEffect} from 'react'
+import React, {useState, useEffect} from 'react'
 import {useDispatch, useSelector} from 'react-redux'
-import {getBugs,addBug,editBug,deleteBug} from '../actions/bugsActions'
-import ReactDOM from 'react-dom'
+import {getBugs,addBug,editBug,deleteBug, setBugMode} from '../actions/bugsActions'
+
+import BugForm from './BugForm'
+
  
 /**
  * https://codesandbox.io/s/7m66w7xn90?file=/src/index.js:1269-1285
@@ -9,10 +11,13 @@ import ReactDOM from 'react-dom'
  * https://stackoverflow.com/questions/60370260/how-to-fix-failed-to-set-the-value-property-on-htmlinputelement-for-react
  * https://stackoverflow.com/questions/41610811/react-js-how-to-send-a-multipart-form-data-to-server
  * https://github.com/expressjs/multer/blob/master/README.md
+ * 
+ * https://www.derpturkey.com/node-multipart-form-data-explained/
+ * 
+ * https://cssinjs.org/?v=v10.6.0 
+ * https://www.digitalocean.com/community/tutorials/how-to-share-state-across-react-components-with-context
  */
-
-
-const useForceUpdate = () =>  useState()[1]
+ 
 
 const Bug = () => {
 
@@ -25,63 +30,42 @@ const Bug = () => {
     const [bug_date, setBug_date] = useState(new Date())
     const [mode, setMode] = useState('list')
 
-
-
-
-    //refs
-    const fileInput = useRef(null)
-    const forceUpdate = useForceUpdate()
+ 
 
     //selectors
     const bugs  = useSelector(state => state.bugs.lista)
+    const bugsMode  = useSelector(state => state.bugs.mode)
 
     //dispatch
     const dispatch = useDispatch()
 
 
-    useEffect(() => {
+    useEffect(() => {        
         
         dispatch(getBugs())
+        dispatch(setBugMode('list'))
 
-    }, [bugs])
+    },[])
 
-/*
-    useEffect (()=> {
-        window.addEventListener("keyup", clickFileInput)
-        return () => window.removeEventListener("keyup",clickFileInput)
-    })
+ 
 
-    function clickFileInput(e){
-        if(fileInput.current.nextsibling.contains(document.activeElement)){
-            if(e.keyCode === 32){
-                fileInput.current.click()
-            }
-        }
-    }
 
-    function fileNames() {
-        const { current } = fileInput;
-    
-        if (current && current.files.length > 0) {
-          let messages = [];
-          for (let file of current.files) {
-            messages = messages.concat(<p key={file.name}>{file.name}</p>);
-          }
-          return messages;
-        }
-        return null;
-      }
-    
-*/
+
+     
 
     const add = () =>{        
-        setMode('new')
+        //setMode('new')
+
+        
+        dispatch(setBugMode('new'))
+        
         cleanData()        
     }
 
     const editar = (item) => {
 
-        setMode('edit')
+        //setMode('edit')        
+        dispatch(setBugMode('edit'))
 
         setBug_address(item.bug_address)
         setBug_description(item.bug_description)
@@ -91,30 +75,28 @@ const Bug = () => {
 
     const remove = (id) => {
         dispatch(deleteBug(id))
+        dispatch(getBugs())        
     }
 
 
     const guardar = (e) => {
-        e.preventDefault()
-        let registro = {
-            bug_address,
-            bug_description,
-            bug_image,
-            bug_date
-        }
+        e.preventDefault()     
 
+         let formData = new FormData()
 
-        const formData = new FormData()
+         console.log(formData)
 
-        formData.append('bug_address',bug_address)
-        formData.append('bug_description',bug_description)
-        formData.append('bug_image', fileInput.current.files)
-        formData.append('bug_date',bug_date)
-
-        mode === 'new' 
-            ? dispatch(addBug(formData))
-            : dispatch(editBug(registro, bugId))
+         formData.append('bug_address',bug_address)
+         formData.append('bug_description',bug_description)        
+         formData.append('bug_image', bug_image, bug_image.name);
+         formData.append('bug_date',bug_date)
         
+
+ 
+        
+        bugsMode === 'new' 
+            ? dispatch(addBug(formData))
+            : dispatch(editBug(formData, bugId))
 
         setMode('list')
 
@@ -138,13 +120,15 @@ const Bug = () => {
     
     const modolista = (
         <>
-          <button type="button" onClick={add}>  + Nuevo</button>  
+          <button type="button" onClick={add}>  + Nuevo  {bugsMode}</button>  
                 <table>
                     <thead>
+                        <th>how is it?</th>
                         <th>where is the bug?</th>
                         <th>what is it?</th>
-                        <th>how is it?</th>
+                        
                         <th>when is it?</th>
+                        <th width='20%'></th>
                         <th>edit</th>
                         <th>remove</th>
                     </thead>
@@ -152,10 +136,11 @@ const Bug = () => {
                         {
                             bugs.map (item => (
                                 <tr key={item.id}>
+                                    <td>  <img  src={item.url} width="150" height="150"/> </td>
                                     <td>{item.bug_address}</td>
-                                    <td>{item.bug_description}</td>
-                                    <td>{item.bug_image}</td>
-                                    <td>{item.bug_date}</td>
+                                    <td>{item.bug_description}</td>                                    
+                                    <td>{item.bug_date.substring(0,10)}</td>
+                                    <td>.</td>                                    
                                     <td> <button type="button" onClick={ () => editar(item)}>editar</button></td>
                                     <td> <button type="button" onClick={ () => remove(item.id)}>trash</button></td>
                                     
@@ -167,52 +152,7 @@ const Bug = () => {
         </>
     )
 
-    const formulario = (
-        <>
-
-
- 
-
-
-         
-         <form>
-                <input 
-                    type="text"
-                    placeholder="where is the bug?"
-                    name="bug_address"
-                    value={bug_address}
-                    onChange={ e => setBug_address(e.target.value)}
-                />
-                <br/>
-
-                <input 
-                    type="text"
-                    placeholder="what's the bug?"
-                    name="bug_description"
-                    value={bug_description}
-                    onChange={ e => setBug_description(e.target.value)}
-                />
-                <br/>
-
-
-                <input 
-                    type="file"
-                    placeholder="how's the bug?"
-                    name="bug_image"
-                    ref={fileInput}
-                    //onChange={forceUpdate}                    
-                />
-                 
-
-                <br/>
-                <button type="button" onClick={guardar}>Guardar</button>
-                <button type="button" onClick={cancelar}>Cancelar</button>
-
-
-            </form>
-        </>
-    )
-
+   
 
 
     return (
@@ -221,25 +161,23 @@ const Bug = () => {
 
 
             {
-                mode === 'list' 
+                bugsMode === 'list' 
                 ? modolista
-                : formulario
+                : (<BugForm />)
             }
 
             
 
             <br />
-            <ul>
-                <li>formatear fechas</li>
+            {/* <ul>                
                 <li>aplicar css</li>
                 <li>asignar iconos</li>
                 <li>give style to the nav</li>
-                <li>----------------</li>
-                <li>guardar images</li>
+                <li>----------------</li>                
                 <li>add solutions</li>
                 <li>https://es.stackoverflow.com/questions/437494/error-al-enviar-prop-error-too-many-re-renders-react-limits-the-number-of-ren</li>
                 <li>https://www.cronj.com/blog/upload-image-nodejs-expressjs-using-javascript/</li>
-            </ul>
+            </ul> */}
 
             
         </>        

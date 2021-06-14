@@ -1,7 +1,8 @@
-import {GET_BUGS,ADD_BUG,EDIT_BUG,DELETE_BUG } from '../actions/bugsActions'
+import {GET_BUGS,ADD_BUG,EDIT_BUG,DELETE_BUG, SET_BUG_MODE } from '../actions/bugsActions'
 
 const initialState = {
-    lista:[]
+    lista:[],
+    mode: ''
 }
 
 export default function(state=initialState, action){
@@ -17,6 +18,7 @@ export default function(state=initialState, action){
                 lista: [...state.lista, action.payload]
             }
         case EDIT_BUG:
+            console.log (action.payload)
             return {
                 ...state,
                 lista: [...state.lista.filter(item=> item.id !== action.payload.id), action.payload]
@@ -25,6 +27,12 @@ export default function(state=initialState, action){
             return{
                 ...state,
                 lista: state.lista.filter(item=>item.id !== action.payload)
+            }
+
+        case SET_BUG_MODE:
+            return{
+                ...state,
+                mode: action.payload
             }
         default:
             return state        
