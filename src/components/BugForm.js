@@ -32,6 +32,7 @@ const BugForm = () => {
         e.preventDefault()
         
          let formData = new FormData()
+         
 
          console.log(formData)
 

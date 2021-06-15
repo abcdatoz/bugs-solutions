@@ -9,7 +9,7 @@ class Header extends Component {
         const { isAuthenticated, username } = this.props.auth
 
         const authLinks = (
-            <ul>
+            <ul className="mainnav">
                 <li><Link  to="/">Home</Link></li>
                 <li><Link  to="/holo">Salute</Link></li>                
                 <li><Link  to="/bugs">Bugs</Link></li>                                

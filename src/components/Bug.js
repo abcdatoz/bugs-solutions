@@ -120,35 +120,59 @@ const Bug = () => {
     
     const modolista = (
         <>
-          <button type="button" onClick={add}>  + Nuevo  {bugsMode}</button>  
-                <table>
-                    <thead>
-                        <th>how is it?</th>
-                        <th>where is the bug?</th>
-                        <th>what is it?</th>
-                        
-                        <th>when is it?</th>
-                        <th width='20%'></th>
-                        <th>edit</th>
-                        <th>remove</th>
-                    </thead>
-                    <tbody>
-                        {
-                            bugs.map (item => (
-                                <tr key={item.id}>
-                                    <td>  <img  src={item.url} width="150" height="150"/> </td>
-                                    <td>{item.bug_address}</td>
-                                    <td>{item.bug_description}</td>                                    
-                                    <td>{item.bug_date.substring(0,10)}</td>
-                                    <td>.</td>                                    
-                                    <td> <button type="button" onClick={ () => editar(item)}>editar</button></td>
-                                    <td> <button type="button" onClick={ () => remove(item.id)}>trash</button></td>
-                                    
-                                </tr>
-                            ))
-                        }
-                    </tbody>
-                </table>
+
+          
+            <div className="y-container">
+
+                <div className="y-item">
+                    <h4>Torneo Fut 7 Dominical </h4>
+                    <h5>San Miguel  </h5>
+                    <a href="#" className="y-btn">Cambiar de Torneo</a>
+                </div>
+
+                <button type="button" onClick={add}>  +   {bugsMode}</button>  
+                <button type="button"> Regresar </button>
+                
+                
+
+                
+                
+                <div className="y-item">
+                    <ul>
+                        <li>32 equipos</li>    
+                        <li>7 jorandas jugadas</li>    
+                        <li>avg : 65 goles por jornada</li>    
+                    </ul> 
+                </div>
+            </div>
+
+            
+             
+
+
+                <div className="x-container">
+                    {
+                        bugs.map ((item,ndx) => (
+                            <div key={item.id} className="x-card">
+                                <div className="x-box">
+                                <div className="x-content">
+                                    <h2><img  src={item.url} width="100" height="100"/></h2>
+                                    <h3>{item.bug_date.substring(0,10)}</h3>
+                                    <p>{item.bug_address} <br/> {item.bug_description}</p>
+                                    <a href="#">Read More</a>
+                                    <br/>                                    
+                                    <button type="button" onClick={ () => editar(item)}>editar</button>
+                                    <button type="button" onClick={ () => remove(item.id)}>trash</button>
+                                </div>
+                                </div>
+                            </div>                     
+
+                        ))
+                    }
+                    
+                </div>
+
+
         </>
     )
 

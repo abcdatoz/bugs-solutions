@@ -364,6 +364,8 @@ export default Home
 
 
   
-  
+//https://css-tricks.com/useful-nth-child-recipies/  
+//https://codepen.io/saviomartin/pen/LYNgqKW
+//https://freefrontend.com/css-cards//
   
   
