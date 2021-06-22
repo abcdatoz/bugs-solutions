@@ -1,4 +1,6 @@
 import React, {useState, useEffect} from 'react'
+import {useSelector ,useDispatch} from 'react-redux'
+import {getDatos} from '../actions/datosActions'
 
 const teams = [
   {id:1, nombre:'Baltimore Orioles'},
@@ -47,10 +49,15 @@ const Home = () => {
 
   const [tablageneral, setTablageneral] = useState([])
 
+  const datosgenerales  = useSelector(state => state.datos)
+
+  //dispatch
+  const dispatch = useDispatch()
 
 
   useEffect(() => {
       
+    dispatch(getDatos())
 
     let juegos = []
     partidos.forEach(item => {

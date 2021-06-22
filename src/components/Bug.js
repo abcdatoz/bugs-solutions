@@ -3,6 +3,7 @@ import {useDispatch, useSelector} from 'react-redux'
 import {getBugs,addBug,editBug,deleteBug, setBugMode} from '../actions/bugsActions'
 
 import BugForm from './BugForm'
+import Resume from './Resume'
 
  
 /**
@@ -28,6 +29,7 @@ const Bug = () => {
     const [bug_description, setBug_description] = useState('')
     const [bug_image, setBug_image] = useState()
     const [bug_date, setBug_date] = useState(new Date())
+    const [bug_sistema, setBug_sistema] = useState(0)
     const [mode, setMode] = useState('list')
 
  
@@ -35,6 +37,7 @@ const Bug = () => {
     //selectors
     const bugs  = useSelector(state => state.bugs.lista)
     const bugsMode  = useSelector(state => state.bugs.mode)
+    const datosgenerales  = useSelector(state => state.datos)
 
     //dispatch
     const dispatch = useDispatch()
@@ -121,13 +124,14 @@ const Bug = () => {
     const modolista = (
         <>
 
+            <Resume />
           
             <div className="y-container">
 
                 <div className="y-item">
-                    <h4>Torneo Fut 7 Dominical </h4>
-                    <h5>San Miguel  </h5>
-                    <a href="#" className="y-btn">Cambiar de Torneo</a>
+                    <h4>titulo h4</h4>
+                    <h5>subtitel h5  </h5>
+                    <a href="#" className="y-btn">Cambiar de modo</a>
                 </div>
 
                 <button type="button" onClick={add}>  +   {bugsMode}</button>  
@@ -139,9 +143,9 @@ const Bug = () => {
                 
                 <div className="y-item">
                     <ul>
-                        <li>32 equipos</li>    
-                        <li>7 jorandas jugadas</li>    
-                        <li>avg : 65 goles por jornada</li>    
+                        <li>32 teams</li>    
+                        <li>7 journeys</li>    
+                        <li>average</li>    
                     </ul> 
                 </div>
             </div>
@@ -152,14 +156,16 @@ const Bug = () => {
 
                 <div className="x-container">
                     {
-                        bugs.map ((item,ndx) => (
+                        bugs
+                        .filter(x=>x.bug_sistema == datosgenerales.idSystem)
+                        .map ((item,ndx) => (
                             <div key={item.id} className="x-card">
                                 <div className="x-box">
                                 <div className="x-content">
                                     <h2><img  src={item.url} width="100" height="100"/></h2>
                                     <h3>{item.bug_date.substring(0,10)}</h3>
-                                    <p>{item.bug_address} <br/> {item.bug_description}</p>
-                                    <a href="#">Read More</a>
+                                    <p> {item.bug_sistema} | {item.bug_address} <br/> {item.bug_description}</p>
+                                    <a href="#">How to solve</a>
                                     <br/>                                    
                                     <button type="button" onClick={ () => editar(item)}>editar</button>
                                     <button type="button" onClick={ () => remove(item.id)}>trash</button>

@@ -2,6 +2,11 @@ import React, {useState, useEffect} from 'react'
 import {useDispatch, useSelector} from 'react-redux'
 import {getBugs,addBug, editBug,  setBugMode} from '../actions/bugsActions'
 
+const sistemas = [
+    {id:1, nombre:'sigmaver'},
+    {id:2, nombre:'ticket'},
+    {id:3, nombre:'deploy'},   
+  ]
 
 const BugForm = () => {
 
@@ -10,6 +15,7 @@ const BugForm = () => {
     const [bug_description, setBug_description] = useState('')
     const [bug_image, setBug_image] = useState()
     const [bug_date, setBug_date] = useState(new Date())
+    const [bug_sistema, setBug_sistema] = useState(0)
 
 
     //selectors
@@ -40,6 +46,7 @@ const BugForm = () => {
          formData.append('bug_description',bug_description)        
          formData.append('bug_image', bug_image, bug_image.name);
          formData.append('bug_date',bug_date)
+         formData.append('bug_sistema',bug_sistema)
          
                  
         bugsMode === 'new' 
@@ -101,6 +108,21 @@ const BugForm = () => {
                     required/>
 
                 <br/>
+
+                <select 
+                    className="form-control"
+                    onChange={ e => setBug_sistema(e.target.value) } 
+                    name="bug_sistema"
+                    value={bug_sistema}>
+                    <option value="null">Seleccine un sistema</option>                                
+                    {sistemas.map(x => (
+                    <option key={x.id} value={x.id}>
+                        {x.id} {x.nombre}
+                    </option>
+                ))}
+                </select>
+
+
                 <button type="button" onClick={guardar}>Guardar</button>
                 <button type="button" onClick={() => dispatch(setBugMode('list')) }>Cancelar</button>
 

@@ -41,7 +41,7 @@ body {
   flex-wrap: wrap;
   justify-content: space-between;
   width: 90wh;
-
+  padding-top: 30px;
 }
 
 .y-item{
@@ -69,13 +69,13 @@ body {
   background: rgb(19, 97, 58);
   color: rgb(231, 221, 221);
 }
-body .x-container {
+.x-container {
   background: #232427;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 40px 0;
 }
 
