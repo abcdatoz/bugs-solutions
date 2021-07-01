@@ -37,7 +37,21 @@ const teams = [
 
 const partidos = []
  
-
+const cuentassaldos = [
+  { banco: 1, saldo: 1500, movimientos: 3 },
+  { banco: 2, saldo: 2500, movimientos: 3 },
+  { banco: 3, saldo: 3500, movimientos: 3 },
+  { banco: 4, saldo: 500, movimientos: 3 },
+  { banco: 5, saldo: 5000, movimientos: 3 },
+  { banco: 6, saldo: 1800, movimientos: 3 },
+  { banco: 7, saldo: 1300, movimientos: 3 },
+  { banco: 8, saldo: 1500, movimientos: 7 },
+  { banco: 9, saldo: 1500, movimientos: 2 },
+  { banco: 10, saldo: 1500, movimientos: 9 },
+  { banco: 11, saldo: 2500, movimientos: 4 },
+  { banco: 12, saldo: 2500, movimientos: 5 },
+  { banco: 13, saldo: 3500, movimientos: 6 }
+]
  
   
 const Home = () => {
@@ -343,8 +357,7 @@ const Home = () => {
       <button type="button" onClick={() => { setMode('new')}}>mode:new</button>
       <button type="button" onClick={() => { setMode('rol')}}>mode:rol</button>
       <button type="button" onClick={() => { setMode('submenu')}}>mode:submenu</button>
-      
-      {mode}
+    
 
        {  renderSwitch(mode)       }  
 

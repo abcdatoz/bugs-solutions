@@ -12,30 +12,31 @@ body {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  min-height: 100vh;
+  min-height: 100vh; 
   
 }
-
 
 .mainnav{
-  background-color: #fff;
-  display: flex;
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  height: 60px;
-}
-
-.mainnav li {
-  color: #777;
-  cursor: pointer;
-  flex: 1;
-  padding: 20px;
-  text-align: center;
-  text-decoration: none;
+    background-color: #fff;
+    display: flex;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    height: 60px;
+  }
   
-}
+  .mainnav li {
+    color: #777;
+    cursor: pointer;
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+    
+  }
+  
 
+ 
 .y-container{
   display: flex;
   flex-wrap: wrap;

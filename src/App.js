@@ -1,8 +1,6 @@
-import './bootstrap.min.css'; // Added this :boom:
 import './App.css';
 
 import Header from  './components/layouts/Header'
-
 
 
 import PrivateRoute from './components/common/PrivateRoute'
