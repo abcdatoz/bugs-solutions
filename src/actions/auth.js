@@ -18,14 +18,30 @@ export const  login = (username, password) => dispatch => {
     };
 
 
-    const body = JSON.stringify({username, password})
+    // nextia    
+    // const body = JSON.stringify( {
+    //     "user":{
+    //         "email": "prueba@nextia.mx",
+    //         "password": "PruebaNextia2021"
+    //     }
+    // })
     
 
+    const body = JSON.stringify({username, password})    
+
+    
+    //nextia
+    //axios.post( urlbase + 'auth/signin', body, config)
+    //axios.post( 'https://prueba-api.nextia.mx/api/v1/login', body, config)
+    
+    
     axios.post( urlbase + 'auth/signin', body, config)
     .then(res => {
+        console.log(res.data.accessToken)
         dispatch({
             type: LOGIN_SUCCESS,
-            payload: res.data
+            payload: { ...res.data, accessToken: res.data.accessToken}
+            //payload: res.data
         })
     })
     .catch( err => {
@@ -67,10 +83,23 @@ export const logout = () => (dispatch, getstate) =>{
 
 
 
+//nextia
+/*
 
+
+export const tokenConfig = getState =>{
+    const token = getState().auth.accessToken
+
+    const config = {
+        headers: {authorization: `${token}`}
+    }
+
+    return config
+}
+*/
 
 export const tokenConfig = getState => {
-        const token = getState().auth.accessToken;
+    const token = getState().auth.accessToken;
 
     const config ={
         headers: {
@@ -84,6 +113,8 @@ export const tokenConfig = getState => {
 
     return config
 }
+
+
 
 export const tokenConfigMultipart = getState => {
     const token = getState().auth.accessToken;

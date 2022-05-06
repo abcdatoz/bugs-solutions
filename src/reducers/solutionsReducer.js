@@ -1,45 +1,39 @@
-import {GET_BUGS,ADD_BUG,EDIT_BUG,DELETE_BUG, SET_BUG_MODE,SET_BUG_ID } from '../actions/bugsActions'
+import {GET_SOLUTIONS,ADD_SOLUTION,EDIT_SOLUTION,DELETE_SOLUTION, SET_SOLUTION_MODE } from '../actions/solutionsActions'
 
 const initialState = {
     lista:[],
-    mode: '',
-    idBug:''
+    mode: ''
 }
 
 export default function(state=initialState, action){
     switch(action.type){
-        case GET_BUGS:
+        case GET_SOLUTIONS:
             return{
                 ...state,
                 lista: action.payload
             }
-        case ADD_BUG:
+        case ADD_SOLUTION:
             return{
                 ...state,
                 lista: [...state.lista, action.payload]
             }
-        case EDIT_BUG:
-            console.log (action.payload)
+        case EDIT_SOLUTION:            
             return {
                 ...state,
                 lista: [...state.lista.filter(item=> item.id !== action.payload.id), action.payload]
             }
-        case DELETE_BUG:
+        case DELETE_SOLUTION:
             return{
                 ...state,
                 lista: state.lista.filter(item=>item.id !== action.payload)
             }
 
-        case SET_BUG_MODE:
+        case SET_SOLUTION_MODE:
             return{
                 ...state,
                 mode: action.payload
             }
-        case SET_BUG_ID:
-            return{
-                ...state,
-                idBug: action.payload
-            }
+        
         default:
             return state        
     }

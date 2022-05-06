@@ -58,8 +58,8 @@ const Resume = () => {
                             </div>
             
              
-                            <button type="button" onClick={() => { dispatch(setDatos({idSystem: syst, nameSystem: sistemas.filter(x => x.id == syst)[0].nombre })) }  }>Guardar</button>
                             
+                            <a href="#" className="y-btn" onClick={() => { dispatch(setDatos({idSystem: syst, nameSystem: sistemas.filter(x => x.id == syst)[0].nombre })) }  }>Guardar</a>                
                             
             
                         </form>
@@ -68,12 +68,12 @@ const Resume = () => {
                 )
                 : (
                     <div className= "y-container">
-                        <button type="button" onClick={ () => { dispatch(setDatos({idSystem: 0, nameSystem: ''}))  }}>  switch  </button>  
+                        
                         <div className="y-item">{ datosgenerales.idSystem } {datosgenerales.nameSystem}</div>
-                        
-                        
                         <div className="y-item">C side</div>
-                        <div className="y-item">D side</div>
+                        <div className="y-item">D side</div>                        
+
+                        <a href="#" className="y-btn" onClick={ () => { dispatch(setDatos({idSystem: 0, nameSystem: ''}))  }}>switch</a>                
                     </div>
                 )
             }

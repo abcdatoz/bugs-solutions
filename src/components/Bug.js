@@ -1,6 +1,9 @@
 import React, {useState, useEffect} from 'react'
 import {useDispatch, useSelector} from 'react-redux'
-import {getBugs,addBug,editBug,deleteBug, setBugMode} from '../actions/bugsActions'
+import {getBugs,deleteBug, setBugMode, setBugID} from '../actions/bugsActions'
+import {getSolutions} from '../actions/solutionsActions'
+import { useHistory } from "react-router-dom";
+
 
 import BugForm from './BugForm'
 import Resume from './Resume'
@@ -20,28 +23,32 @@ import Resume from './Resume'
  */
  
 
+ const sistemas = [
+    {id:1, nombre:'sigmaver'},
+    {id:2, nombre:'ticket'},
+    {id:3, nombre:'deploy'},   
+  ]
+
 const Bug = () => {
 
-
+    
     //states
     const [bugId, setBugId] = useState('')
-    const [bug_address, setBug_address] = useState('')
-    const [bug_description, setBug_description] = useState('')
-    const [bug_image, setBug_image] = useState()
-    const [bug_date, setBug_date] = useState(new Date())
-    const [bug_sistema, setBug_sistema] = useState(0)
-    const [mode, setMode] = useState('list')
 
  
 
     //selectors
+    const datosgenerales  = useSelector(state => state.datos)
+    
     const bugs  = useSelector(state => state.bugs.lista)
     const bugsMode  = useSelector(state => state.bugs.mode)
-    const datosgenerales  = useSelector(state => state.datos)
+    const soluciones = useSelector(state => state.solutions.lista)
 
     //dispatch
     const dispatch = useDispatch()
 
+
+    let history = useHistory();
 
     useEffect(() => {        
         
@@ -51,164 +58,112 @@ const Bug = () => {
     },[])
 
  
-
-
-
-     
-
-    const add = () =>{        
-        //setMode('new')
-
-        
-        dispatch(setBugMode('new'))
-        
-        cleanData()        
+    const add = () =>{                
+        setBugId(null)
+        dispatch(setBugMode('new'))                
     }
 
     const editar = (item) => {
-
-        //setMode('edit')        
-        dispatch(setBugMode('edit'))
-
-        setBug_address(item.bug_address)
-        setBug_description(item.bug_description)
-        setBug_image(item.bug_image)
+        
         setBugId(item.id)
+        dispatch(setBugMode('edit'))        
+        
     }
 
-    const remove = (id) => {
-        dispatch(deleteBug(id))
+    const remove = (item) => {
+        dispatch(deleteBug(item.id))
         dispatch(getBugs())        
     }
 
-
-    const guardar = (e) => {
-        e.preventDefault()     
-
-         let formData = new FormData()
-
-         console.log(formData)
-
-         formData.append('bug_address',bug_address)
-         formData.append('bug_description',bug_description)        
-         formData.append('bug_image', bug_image, bug_image.name);
-         formData.append('bug_date',bug_date)
-        
-
  
-        
-        bugsMode === 'new' 
-            ? dispatch(addBug(formData))
-            : dispatch(editBug(formData, bugId))
+    const addSolution = (item) => {
+        dispatch(setBugID(item.id))
 
-        setMode('list')
-
+        history.push("/solutions");
     }
 
-
-    const cancelar = () =>{
-        
-        setMode('list')
-
-        cleanData()
-      
-    }
-
-    const cleanData = () =>{
-        setBug_address('')
-        setBug_description('')
-        setBug_image('')        
-    }
+  
 
     
     const modolista = (
         <>
 
-            <Resume />
+            
           
-            <div className="y-container">
-
-                <div className="y-item">
-                    <h4>titulo h4</h4>
-                    <h5>subtitel h5  </h5>
-                    <a href="#" className="y-btn">Cambiar de modo</a>
-                </div>
-
-                <button type="button" onClick={add}>  +   {bugsMode}</button>  
-                <button type="button"> Regresar </button>
-                
-                
-
-                
-                
-                <div className="y-item">
-                    <ul>
-                        <li>32 teams</li>    
-                        <li>7 journeys</li>    
-                        <li>average</li>    
-                    </ul> 
-                </div>
-            </div>
+                <a href="#" className="y-btn" onClick={ () => { add()   }}>+ </a>   
 
             
-             
+            
+                <table>
+                    <thead>
+                        <tr>
+                            
+                            <th>image</th>
+                            <th>Address</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>sistema</th>
+                            <th> </th>
+                            <th> </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
 
+                        {
+                            bugs                            
+                            .map ((item,ndx) => (
+                                <tr>
+                                    
+                                    <td><img  src={item.url} width="30" height="30"/> </td>
+                                    <td>{item.bug_address} </td>
+                                    <td>{item.bug_description} </td>
+                                    <td>{item.bug_date.substr(0,10)} </td>
+                                    <td> { sistemas.filter(x=>x.id == item.bug_sistema)[0].nombre } </td>
+                                    <td> </td>
+                                    <td>
+                                        <button type="button" onClick={ () => addSolution(item)}>Solutions</button>
+                                        <button type="button" onClick={ () => editar(item)}>editar</button>
+                                        <button type="button" onClick={ () => remove(item)}>trash</button> 
+                                    </td>
+                                    
+                                </tr>                        
+                            ))
+                        }
+                    </tbody>
+                </table>
 
-                <div className="x-container">
-                    {
-                        bugs
-                        .filter(x=>x.bug_sistema == datosgenerales.idSystem)
-                        .map ((item,ndx) => (
-                            <div key={item.id} className="x-card">
-                                <div className="x-box">
-                                <div className="x-content">
-                                    <h2><img  src={item.url} width="100" height="100"/></h2>
-                                    <h3>{item.bug_date.substring(0,10)}</h3>
-                                    <p> {item.bug_sistema} | {item.bug_address} <br/> {item.bug_description}</p>
-                                    <a href="#">How to solve</a>
-                                    <br/>                                    
-                                    <button type="button" onClick={ () => editar(item)}>editar</button>
-                                    <button type="button" onClick={ () => remove(item.id)}>trash</button>
-                                </div>
-                                </div>
-                            </div>                     
-
-                        ))
-                    }
-                    
-                </div>
+                 
+                 <ul>
+                     {
+                         soluciones.map ( (sol) => (
+                             <li> {sol.description} ({ sol.query }) </li>
+                         ) )
+                     }
+                 </ul>
 
 
         </>
     )
 
-   
+    //.filter(x=>x.bug_sistema == datosgenerales.idSystem)
+
+   //<Resume />
 
 
     return (
         <>
-            <h3>bugs</h3>
 
+            
+            <br />
+            <h3>bugs</h3>
+            
 
             {
                 bugsMode === 'list' 
                 ? modolista
-                : (<BugForm />)
+                : (<BugForm id={bugId}  />)
             }
-
-            
-
-            <br />
-            {/* <ul>                
-                <li>aplicar css</li>
-                <li>asignar iconos</li>
-                <li>give style to the nav</li>
-                <li>----------------</li>                
-                <li>add solutions</li>
-                <li>https://es.stackoverflow.com/questions/437494/error-al-enviar-prop-error-too-many-re-renders-react-limits-the-number-of-ren</li>
-                <li>https://www.cronj.com/blog/upload-image-nodejs-expressjs-using-javascript/</li>
-            </ul> */}
-
             
         </>        
     )

@@ -11,8 +11,12 @@ import Home from './components/Home'
 import Hello from './components/Hello'
 import Bug from './components/Bug'
 import Solution from './components/Solutions'
+import Beneficios from './components/Beneficios'
 
 import { Route, Switch, } from 'react-router-dom'
+
+
+
 
 function App() {
   return (
@@ -30,9 +34,12 @@ function App() {
           <PrivateRoute exact path="/holo" component={Hello} />
           <PrivateRoute exact path="/bugs" component={Bug} />
           <PrivateRoute exact path="/solutions" component={Solution} />
+          <PrivateRoute exact path="/beneficios" component={Beneficios} />
         </Switch>
 
       </div>
+ 
+
       
 
     </div>

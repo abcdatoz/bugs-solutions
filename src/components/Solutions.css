@@ -1,0 +1,10 @@
+
+
+.wrapper {
+    margin-top: 50px;
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr 1fr 1fr;
+    grid-gap: 30px;
+    border: dashed 1px green;
+}
+

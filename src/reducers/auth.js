@@ -1,6 +1,7 @@
 import  { LOGIN_SUCCESS, LOGIN_FAIL, REGISTER_FAIL, REGISTER_SUCCESS,LOGOUT_SUCCESS} from '../actions/auth'
 
-
+//nextia
+/*
 const initialState = {
     accessToken: localStorage.getItem('token'),    
     isAuthenticated: null, 
@@ -8,6 +9,17 @@ const initialState = {
     email: null,
     roles: []
 }
+*/ 
+
+const initialState = {
+    accessToken: localStorage.getItem('token'),    
+    id : null,
+    email:null,
+    role:null,
+    member:{},
+    isAuthenticated: null
+}
+
 
 
 export default function (state= initialState,action){

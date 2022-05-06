@@ -8,7 +8,7 @@ const sistemas = [
     {id:3, nombre:'deploy'},   
   ]
 
-const BugForm = () => {
+const BugForm = (props) => {
 
     const [bugId, setBugId] = useState('')
     const [bug_address, setBug_address] = useState('')
@@ -16,7 +16,8 @@ const BugForm = () => {
     const [bug_image, setBug_image] = useState()
     const [bug_date, setBug_date] = useState(new Date())
     const [bug_sistema, setBug_sistema] = useState(0)
-
+ 
+    const [mode, setMode] = useState('')
 
     //selectors
     const bugs  = useSelector(state => state.bugs.lista)
@@ -29,6 +30,26 @@ const BugForm = () => {
     useEffect(() => {        
         
         dispatch(getBugs())
+        
+
+        if (props.id){
+
+            setMode('edit')
+
+            let record = bugs.filter(x=>x.id == props.id)[0]
+            let fecha = record.bug_date.substr(0,10)
+            
+            setBugId(props.id)
+            setBug_address(record.bug_address)
+            setBug_description(record.bug_description)
+            setBug_sistema(record.bug_sistema)
+            setBug_date(fecha)
+            setBug_image(record.bug_image)
+            
+
+        }else{
+            setMode('new')
+        }
 
     },[])
 
@@ -40,7 +61,7 @@ const BugForm = () => {
          let formData = new FormData()
          
 
-         console.log(formData)
+         
 
          formData.append('bug_address',bug_address)
          formData.append('bug_description',bug_description)        
@@ -48,6 +69,8 @@ const BugForm = () => {
          formData.append('bug_date',bug_date)
          formData.append('bug_sistema',bug_sistema)
          
+
+
                  
         bugsMode === 'new' 
             ? dispatch(addBug(formData))
@@ -66,16 +89,17 @@ const BugForm = () => {
             <form>
                         
 
-
+                <label for="start">Ubicacion </label><br />
                 <input 
                     type="text"
-                    placeholder="ifugr?"
+                    placeholder="where's the bug?"
                     name="bug_address"
                     value={bug_address}
                     onChange={ e => setBug_address(e.target.value)}
                 />
                 <br/>
 
+                <label for="start">Descripcion </label><br />
                 <input 
                     type="text"
                     placeholder="what's the bug?"
@@ -86,7 +110,7 @@ const BugForm = () => {
                 <br/>
 
                 <div>
-                <label for="start">fecha:</label>
+                <label for="start">Fecha: </label><br />
 
                     <input type="date" 
                         id="start"                         
@@ -98,7 +122,9 @@ const BugForm = () => {
                 </div> 
 
 
+
                 <br/>
+                <label for="start">Evidencia </label><br />
                 <input 
                     type="file"
                     placeholder="how's the bug?"
@@ -109,6 +135,7 @@ const BugForm = () => {
 
                 <br/>
 
+                <label for="start">Sistema </label><br />
                 <select 
                     className="form-control"
                     onChange={ e => setBug_sistema(e.target.value) } 
@@ -122,7 +149,7 @@ const BugForm = () => {
                 ))}
                 </select>
 
-
+                <br /><br />
                 <button type="button" onClick={guardar}>Guardar</button>
                 <button type="button" onClick={() => dispatch(setBugMode('list')) }>Cancelar</button>
 
