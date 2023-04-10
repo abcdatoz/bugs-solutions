@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { tokenConfig, tokenConfigMultipart } from './auth'
-
+import { toast } from 'react-toastify';
 
 export const GET_BUGS ='GET_BUGS'
 export const ADD_BUG ='ADD_BUG'
@@ -54,7 +54,16 @@ export const addBug = (registro) => (dispatch, getState) => {
                 payload: obj
             })
         })
-        .catch(err => console.log(err))
+        .catch(err => {
+            
+            console.log(Object.keys(err))
+            console.log(err.response)
+            console.log(err.response.data)
+
+            toast.error(err.response.data.error);
+            
+            }
+            )
         
 }
 export const editBug = (registro, id) => (dispatch, getState) => {    

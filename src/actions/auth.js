@@ -37,7 +37,7 @@ export const  login = (username, password) => dispatch => {
     
     axios.post( urlbase + 'auth/signin', body, config)
     .then(res => {
-        console.log(res.data.accessToken)
+        console.log(res.data)
         dispatch({
             type: LOGIN_SUCCESS,
             payload: { ...res.data, accessToken: res.data.accessToken}

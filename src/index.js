@@ -11,6 +11,7 @@ import rootReducer from './reducers/index'
 import { composeWithDevTools } from 'redux-devtools-extension'
 
 import { BrowserRouter } from 'react-router-dom'
+import 'semantic-ui-css/semantic.min.css'
 
 const initialState = {}
 

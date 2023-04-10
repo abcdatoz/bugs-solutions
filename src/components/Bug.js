@@ -4,8 +4,10 @@ import {getBugs,deleteBug, setBugMode, setBugID} from '../actions/bugsActions'
 import {getSolutions} from '../actions/solutionsActions'
 import { useHistory } from "react-router-dom";
 
+import { Button, Form, Icon, Input, Modal as MyModal } from 'semantic-ui-react'
 
 import BugForm from './BugForm'
+import BugModal from './BugModal'
 import Resume from './Resume'
 
  
@@ -35,7 +37,7 @@ const Bug = () => {
     //states
     const [bugId, setBugId] = useState('')
 
- 
+    const [selectedModal, setModal] = useState(false)
 
     //selectors
     const datosgenerales  = useSelector(state => state.datos)
@@ -43,6 +45,16 @@ const Bug = () => {
     const bugs  = useSelector(state => state.bugs.lista)
     const bugsMode  = useSelector(state => state.bugs.mode)
     const soluciones = useSelector(state => state.solutions.lista)
+
+
+
+    
+    const [bug_address, setBug_address] = useState('')
+    const [bug_description, setBug_description] = useState('')
+    const [bug_image, setBug_image] = useState()
+    const [bug_date, setBug_date] = useState(new Date())
+    const [bug_sistema, setBug_sistema] = useState(0)
+
 
     //dispatch
     const dispatch = useDispatch()
@@ -82,18 +94,28 @@ const Bug = () => {
         history.push("/solutions");
     }
 
+    const openModal = () => {                  
+        console.log ('se abre')    
+        setModal(true)
+    }
   
+    const closeModal = () => {
+        setModal(false)        
+    }
 
+    const guardar = () => {
+
+        e.preventDefault()
+        
+         
+                
+    }
     
     const modolista = (
         <>
 
-            
-          
-                <a href="#" className="y-btn" onClick={ () => { add()   }}>+ </a>   
+                <a href="#" className="y-btn" onClick={ () => { openModal()   }}>+ </a>   
 
-            
-            
                 <table>
                     <thead>
                         <tr>
@@ -119,7 +141,7 @@ const Bug = () => {
                                     <td>{item.bug_address} </td>
                                     <td>{item.bug_description} </td>
                                     <td>{item.bug_date.substr(0,10)} </td>
-                                    <td> { sistemas.filter(x=>x.id == item.bug_sistema)[0].nombre } </td>
+                                    {/* <td> { sistemas.filter(x=>x.id == item.bug_sistema)[0].nombre } </td> */}
                                     <td> </td>
                                     <td>
                                         <button type="button" onClick={ () => addSolution(item)}>Solutions</button>
@@ -162,8 +184,78 @@ const Bug = () => {
             {
                 bugsMode === 'list' 
                 ? modolista
-                : (<BugForm id={bugId}  />)
+                : (
+                    <div>asd</div>
+                   
+                
+                    )
+
             }
+
+
+
+            {/* <MyModal basic open={selectedModal}>
+                        <MyModal.Header>Editar oficio </MyModal.Header>
+                        <MyModal.Content>
+                            <Form>     
+                        
+                            <label>Fecha</label><br />
+                <Form.Field>                        
+                    <input type="date" 
+                        id="start"                         
+                        name = "bug_date"
+                        value= {bug_date}
+                        min="2021-01-01" max="2025-12-31" 
+                        onChange={ e => setBug_date(e.target.value)}
+                        />
+                </Form.Field>
+
+
+
+                <br/>         
+                <label>Descripcion</label><br />
+                <Form.Field>                        
+                    <input type="text"  
+                            name = "bug_description" 
+                            value= {bug_description} 
+                            onChange={ e => setBug_description(e.target.value)}                         
+                    />
+                </Form.Field>
+
+                <br/>         
+                <label>address</label><br />
+                <Form.Field>                        
+                    <input type="text"  
+                            name = "bug_address" 
+                            value= {bug_address} 
+                            onChange={ e => setBug_address(e.target.value)}                         
+                    />
+                </Form.Field>
+
+                            
+
+                            </Form>
+                        </MyModal.Content>
+
+                        <MyModal.Actions>
+                            <Button basic color='green' inverted  onClick={ () => guardar() } >
+                                <Icon name='checkmark' /> Guardar
+                            </Button>
+
+                            <Button basic color='red' inverted onClick={closeModal}>
+                                <Icon name='remove' /> Cancelar
+                            </Button>            
+                        </MyModal.Actions>    
+
+                    </MyModal> */}
+
+
+                    <MyModal
+                    trigger={<Button>Show Modal</Button>}
+                    header='Reminder!'
+                    content='Call Benjamin regarding the reports.'
+                    actions={['Snooze', { key: 'done', content: 'Done', positive: true }]}
+                    />
             
         </>        
     )
