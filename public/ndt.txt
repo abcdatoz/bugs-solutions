@@ -11,1149 +11,171 @@ using System.Windows.Forms;
 
 
 
-namespace migrator
-{
-    public partial class Form3 : Form
-    {
+<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0-alpha.1" />
 
-        public string cadena;
-        public Form3()
+
+
+ public void ConfigureServices(IServiceCollection services)
         {
-            cadena = @"data source = .\sqlexpress19; initial catalog = tuxpan; user id = sa; password = orfisDev$13";
+            services.AddControllers(action => {  action.ReturnHttpNotAcceptable = true;}).AddFluentValidation (cfg => cfg.RegisterValidatorsFromAssemblyContaining<Create>())    
+                // .AddXmlDataContractSerializerFormatters()
+                .AddNewtonsoftJson()
+                .AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = null);
 
-            InitializeComponent();
-        }
+            //string connectionString = "Server=.\\sqlexpress19;Database=audit;User Id=sa;Password=orfisDev$13; encrypt=false";            
+            string mycnnxString = "Server=localhost;User ID=root;Password=W3st3rn;Database=audit";
 
-        private void Button1_Click(object sender, EventArgs e)
-        {
-            string ejercicio, idPM;
-            int xAño, xMes;
-
-            string sql ="";
-            #region obtener datos del periodo actual
-            sql = "select idejercicio from periodomensual where periodoactual = 1";
-            ejercicio = getTexto(sql);
+            services.AddDbContext<MyContext>(o => {            
+                // o.UseSqlServer(connectionString);                
+                o.UseMySql(mycnnxString, new MySqlServerVersion(new Version()));
+            });
 
 
-            sql = "select id from periodomensual where periodoactual = 1";
-            idPM = getTexto(sql);
-
-            sql = "select mes from periodomensual where periodoactual = 1";
-            xMes = int.Parse(getTexto(sql));
-
-            sql = "select anio from ejercicio where id ='" + ejercicio + "'";
-            xAño = int.Parse(getTexto(sql));
-
-             
-
-            string prefix= "";
-
-
-            if (xMes < 10)
-            {
-                prefix = xAño + "0" + xMes;
-            }
-            else
-            {
-                prefix = xAño + "" + xMes.ToString();
-            }
-
-
-            #endregion
-
-            #region folios
             
-            string folio;
-            sql = "select max(sc.folio) "
-                   + " from SolicitudCompra sc "
-                   + " where status = 1"
-                   + " and folio like 'SC" + prefix + "%'";
 
-            folio = getTexto(sql);
-            int maxfolio = 0;
+            services.AddCors(opt => {
+                opt.AddPolicy("CorsPolicy", 
+                policy => {
+                    policy
+                        .WithOrigins(_configuration["CorsAllow:port"])
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
                         
-
-            if (folio != "")            
-                maxfolio = int.Parse(folio.Substring(folio.Length - 4, 4));
-            
-            
-
-
-
-            sql = "select  cast(e.anio as nvarchar) + case when pm.mes < 10 then '0' + cast(mes as nvarchar) else cast(mes as nvarchar) end "
-                + " from periodomensual pm "
-                + " inner join ejercicio e on idejercicio = e.id"
-                + " where periodoactual = 1";
-
-            string pre;
-            pre = getTexto(sql);
-
-
-            sql = "update tiposcompras "
-                + " set folio = 'SC"+  pre + "' + fol.nuevofolio "
-                + " from tiposcompras inner join (select distinct id,  right('000000' + cast(id + " + maxfolio + " as nvarchar), 6) as nuevofolio from tiposcompras) as fol "
-                + " on tiposcompras.id = fol.id";
-            ejecutarsql(sql);
-
-            sql = "update tiposcompras set idbien = bienes.id from tiposcompras left join bienes on bien = bienes.codigoCompleto";
-            ejecutarsql(sql);
-
-
-            sql = "update tiposcompras "
-                + " set idPP = aux.idProgramaPresupuesto"
-                + "  from tiposcompras left join (select ep.idProgramaPresupuesto, p.codigoCompleto as prog, cog.codigoCompleto as cog, oi.codigoCompleto as oi "
-                                                + " from EstructuraPresupuestal ep "
-                                                + "  inner join ProgramaPresupuesto pp on ep.idProgramaPresupuesto = pp.id "
-                                                + " inner join Programa p on idPrograma = p.id"
-                                                + " inner join Clasificador cog on idcog = cog.id "
-                                                + " inner join OrigenIngreso oi on pp.idOrigenIngreso = oi.id) aux "
-                                                + " on  tiposcompras.origeningreso = aux.oi  and tiposcompras.cog = aux.cog and tiposcompras.programa = aux.prog";
-
-           ejecutarsql(sql);
-
-            #endregion
-
-            #region compras
-            sql = "insert into SolicitudCompra (id, fecha, observaciones , documentoFuente, fechaentregaestimada,status,descripcion,folio, statuscompra, proveedor, idtipocompra, idPeriodoMensual, idEjercicio)"
-                + " select newid(), qwe.fecha, qwe.observaciones , '3BA4EB02-04B1-4DB9-B385-EB665499E93A' as docfuente, qwe.fecha as fechaentregaestimada,1 as status, qwe.observaciones as descripcion "
-                + ", qwe.folio, 'recepcionada' as statuscompra, qwe.proveedor, 'E0EF234B-9487-4697-87A4-583C1CD97449' as idtipocompra, '" + idPM + "' as idPeriodoMensual, '" + ejercicio + "' as idEjercicio "
-                + " from (select distinct  fecha, observaciones, folio, ca.id as proveedor "
-                        + " from tiposcompras tc "
-                        + " inner join CatalogoAuxiliar ca on tc.proveedor = ca.clave) as qwe";
-
-
-            ejecutarsql(sql);
-
-            sql = "insert into SolicitudCompraDetalle (id, idsolicitudcompra,cantidad, precio, porcentajeiva,descuento, idunidadmedida, total, mes, status,idejercicio,idperiodomensual,idente,statuscompra, idProgramaPresupuesto, idbienes) "
-                + " select newid(), sc.id ,1 as cantidad, tc.precio, 0 as porcentajeiva, 0 as descuento, 'A00FA9D4-E0B3-42AD-A444-166E5C3CD872' as idunidadmedida, tc.precio, 0 as mes, 1 as status "
-                + ", '0F35CAF2-BBEC-4A0D-BF9D-643A3BBFF3C1' as idejercicio,'165BBD0F-C815-498E-A475-804A16A20E23' as idperiodomensual,'5D78210F-6D14-4D8C-B12D-4AF971AA6208' as idente, 'recibidoTotal' as statuscompra, tc.idPP, tc.idbien"
-                + " from tiposcompras tc"
-                + " inner join SolicitudCompra sc on tc.folio = sc.folio";
-
-            ejecutarsql(sql);
-            #endregion
-
-
-            #region recepcion
-            //folio RC
-            sql = "select max(sc.folio) "
-                  + " from recepcioncompra sc "
-                  + " where status = 1"
-                  + " and folio like 'RC" + prefix + "%'";
-
-            folio = getTexto(sql);
-            maxfolio = 0;
-
-
-            if (folio != "")
-                maxfolio = int.Parse(folio.Substring(folio.Length - 4, 4));
-
-
-            sql = " insert into RecepcionCompra(id, fecharecepcion, observaciones, nombrerecibio, totalRecepcion, idsolicitudcompra, ordengenerada, status, statusrecepcion, folio)"
-                + " select newid() as id,  sc.fecha as fecharecepcion, sc.observaciones, '.' as nombrerecibio, tc.total, sc.id as idsolicitudcompra,1 as ordengenerada,1 as status, 'ordenDePago' as estatusrecepcion"
-                + ", 'RC" + pre + "' + right('000000' + cast(" + maxfolio + " + tc.id as nvarchar),6) as folio"
-                + " from SolicitudCompra sc inner join (select id,folio, sum(precio) as total from tiposcompras group by id, folio) as tc"
-                + " on sc.folio = tc.folio";
-            ejecutarsql(sql);
-
-            sql = " insert into RecepcionDetalle (id, idRecepcionCompra, cantidadRecibida, idSolicitudCompraDetalle,status,statusRecepcion, total, idproveedor)"
-                    + " select distinct newid(),  rc.id, scd.cantidad, scd.id,1 as status, '' as statusrecepcion, scd.total, sc.proveedor"
-                    + " from SolicitudCompra sc"
-                    + " inner join SolicitudCompraDetalle scd on scd.idSolicitudCompra = sc.id"
-                    + " inner join RecepcionCompra rc on sc.id = rc.idSolicitudCompra "
-                    + " where sc.folio in (select folio from tiposcompras)";
-            ejecutarsql(sql);
-            #endregion
-
-
-            polizasSC(xMes, idPM, ejercicio, xAño);
-            polizasRC(xMes, idPM, ejercicio, xAño);
-
-            ordendepago(xMes, idPM, ejercicio, xAño);
-            polizasOP(xMes, idPM, ejercicio, xAño);
-            
-
-            MessageBox.Show("finish");
-
-
-        }
-
-        public void polizasSC(int xMes, string idPM, string ejercicio, int xAño)
-        {
-            SqlConnection myConnection = new SqlConnection(cadena);
-            myConnection.Open();
-
-            string sql;
-
-            sql = "select * from SolicitudCompra where id in (select sc.id from SolicitudCompra sc inner join tiposcompras tc on sc.folio = tc.folio)";
-            SqlDataReader myReader = null;
-            SqlCommand myCommand = new SqlCommand(sql, myConnection);
-
-            myReader = myCommand.ExecuteReader();
-
-
-            //folios polizas
-            string lastFolioPoliza;
-            int folioPoliza;
-            sql = "select max(right(foliocadena,4))  from poliza where idperiodomensual = '" + idPM + "' and idtipopoliza = 4";
-            lastFolioPoliza = getTexto(sql);
-            folioPoliza = int.Parse(lastFolioPoliza);
-            lastFolioPoliza = "EG2023" + xMes.ToString();
-            if (xMes < 10) lastFolioPoliza = "EG2023" + xMes.ToString();
-            if (xMes == 1 || xMes == 3 || xMes == 5 || xMes == 7 || xMes == 8 || xMes == 10 || xMes == 12) lastFolioPoliza += "31";
-            if (xMes == 2) lastFolioPoliza += "28";
-            if (xMes == 4 || xMes == 6 || xMes == 9 || xMes == 11) lastFolioPoliza += "30";
-
-
-
-
-
-            while (myReader.Read())
-            {
-                folioPoliza++;
-
-
-                #region get fecha y folio
-
-                string auxFecha;
-                DateTime fecha;
-
-
-
-                string idSol = myReader["id"].ToString();
-
-                fecha = DateTime.Parse(myReader["fecha"].ToString());
-
-                auxFecha = fecha.Year.ToString();
-
-                if (fecha.Month < 10)
-                {
-                    auxFecha += "0" + fecha.Month.ToString();
                 }
-                else
-                {
-                    auxFecha += fecha.Month.ToString();
-                }
-
-                if (fecha.Day < 10)
-                {
-                    auxFecha += "0" + fecha.Day.ToString();
-                }
-                else
-                {
-                    auxFecha += fecha.Day.ToString();
-                }
-
-
-                string aux;
-                string nuevoFolioCadena;
-
-
-
-                aux = "00000000" + folioPoliza;
-                nuevoFolioCadena = lastFolioPoliza + aux.Substring(aux.Length - 6);
-
-                
-
-                #endregion
-
-
-                Guid idPoliza = Guid.NewGuid();
-
-
-
-                sql = "INSERT INTO poliza (id, fecha, idPeriodoMensual, idEjercicio, documentoFuente, descripcion, idTipoPoliza,  folioCadena)"
-                    + " VALUES ('" + idPoliza + "'"
-                    + ", '" + auxFecha + "'"
-                    + ",'" + idPM + "'"
-                    + ",'" + ejercicio + "'"
-                    + ",'Autorización de compras'"
-                    + ",'Autorización de compras'"
-                    + ", 4"
-                    + ",'" + nuevoFolioCadena + "')";
-                ejecutarsql(sql);
-
-                #region Relacion Origen Asiento
-                Guid idROA = Guid.NewGuid();
-
-
-                sql = " INSERT INTO RelacionOrigenAsiento(id, ejercicio, periodoMensual, ente, año, mes, origenSolicitudCompra)"
-                    + " select newid(),'" + ejercicio + "','" + idPM + "','5D78210F-6D14-4D8C-B12D-4AF971AA6208'," + xAño + "," + xMes + ", idSolicitudCompra"
-                    + " from SolicitudCompraDetalle where idSolicitudCompra = '" + idSol + "'";
-                ejecutarsql(sql);
-
-                sql = " INSERT INTO RelacionOrigenAsientoDetalle(id, idRelacionOrigenAsiento, idOrigenCompraDetalle)"
-                     + " select newid(), idroa, idOrigenCompraDetalle "
-                     + " from (SELECT  ROW_NUMBER() OVER(ORDER BY id ASC) AS renglon, idSolicitudCompra, id as idOrigenCompraDetalle "
-                              + "FROM SolicitudCompraDetalle WHERE idSolicitudCompra = '" + idSol + "') as qwe "
-                     + " inner join (SELECT ROW_NUMBER() OVER(ORDER BY id ASC) AS renglon, origenSolicitudCompra, id as idroa "
-                             + " FROM RelacionOrigenAsiento roa"
-                             + " WHERE origenSolicitudCompra = '" + idSol + "') as rty"
-                     + " on qwe.renglon = rty.renglon";
-
-                ejecutarsql(sql);
-
-                sql = "INSERT INTO AsientoEncabezado (id, fecha, descripcion, idPeriodoMensual, idEjercicio, idPoliza, totalCargos, totalAbonos,origenGastoDetalle , procesoOrigen )"
-                    + "SELECT NEWID(), getdate(), 'Comprimiso del Egreso', '" + idPM + "', '" + ejercicio + "', '" + idPoliza + "',0,0, road.id, roa.id "
-                    + " from RelacionOrigenAsientoDetalle road "
-                    + " inner join SolicitudCompraDetalle det on road.idOrigenCompraDetalle = det.id"
-                    + " inner join RelacionOrigenAsiento roa on road.idRelacionOrigenAsiento = roa.id "
-                    + " where det.idSolicitudCompra = '" + idSol + "'";
-
-                ejecutarsql(sql);
-
-
-                #endregion
-
-                #region asientos Presupuestales    y contables                
-
-                sql = "INSERT INTO AsientoDetalle(id, idAsientoEncabezado, idCuenta, cargo, abono, orden, idEstructuraPresupuetal, idEstructuraPresupuestalMes, esIngreso, esEgreso)"
-                    + " select newid(), ae.id, pptales.id as icuenta,(case when Paso.descripcion = 'Comprometido' then sdet.total else 0 end) as cargo, (case when Paso.descripcion = 'Por ejercer' then sdet.total else 0 end) as abono "
-                    + ", 0 as orden, ep.id, epm.id, 0 as esIngreso, 1 as esEgreso "
-                    + " from SolicitudCompraDetalle sdet"                    
-                    + " inner join ProgramaPresupuesto pp on sdet.idprogramapresupuesto = pp.id "
-                    + " inner join EstructuraPresupuestal ep on ep.idProgramaPresupuesto = pp.id"
-                    + " inner join EstructuraPresupuestalMes epm on epm.idEstructuraPresupuestal = ep.id "
-                    + " inner join cuenta c on ep.idCuenta = c.id "
-                    + " inner join cuenta pptales on c.id = pptales.idOrigenContable"
-                    + " inner join paso on pptales.idpaso = paso.id"
-                    + " inner join RelacionOrigenAsientoDetalle road on road.idOrigenCompraDetalle = sdet.id"
-                    + " inner join RelacionOrigenAsiento roa on roa.id = road.idRelacionOrigenAsiento"
-                    + " inner join AsientoEncabezado ae on procesoOrigen = roa.id"
-                    + " where sdet.idSolicitudCompra = '" + idSol + "'"
-                    + " and paso.descripcion in ('Comprometido', 'Por ejercer')"
-                    + " and epm.idPeriodoMensual = '" + idPM + "'";
-                ejecutarsql(sql);
-
-
+                );
+            });
  
 
-                #endregion
-
-            }
+......
 
 
-        }
 
-        public void polizasRC(int xMes, string idPM, string ejercicio, int xAño)
+namespace sigmaAuditor.Context
+{
+    
+    public class MyContext: DbContext
+    {
+
+        public MyContext(DbContextOptions<MyContext> options): base(options)
         {
-            SqlConnection myConnection = new SqlConnection(cadena);
-            myConnection.Open();
 
-            string sql;
+            try{
 
-            sql = "select * from RecepcionCompra where idSolicitudCompra in (select sc.id from SolicitudCompra sc inner join tiposcompras tc on sc.folio = tc.folio)";
-            SqlDataReader myReader = null;
-            SqlCommand myCommand = new SqlCommand(sql, myConnection);
+                    var databaseCreator =Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator;
 
-            myReader = myCommand.ExecuteReader();
+                    if (databaseCreator != null) {
+                        if (!databaseCreator.CanConnect()) databaseCreator.Create();
 
-
-            //folios polizas
-            string lastFolioPoliza;
-            int folioPoliza;
-            sql = "select max(right(foliocadena,4))  from poliza where idperiodomensual = '" + idPM + "' and idtipopoliza = 4";
-            lastFolioPoliza = getTexto(sql);
-            folioPoliza = int.Parse(lastFolioPoliza);
-            lastFolioPoliza = "EG2023" + xMes.ToString();
-            if (xMes < 10) lastFolioPoliza = "EG2023" + xMes.ToString();
-            if (xMes == 1 || xMes == 3 || xMes == 5 || xMes == 7 || xMes == 8 || xMes == 10 || xMes == 12) lastFolioPoliza += "31";
-            if (xMes == 2) lastFolioPoliza += "28";
-            if (xMes == 4 || xMes == 6 || xMes == 9 || xMes == 11) lastFolioPoliza += "30";
-
-
-            
-
-
-            while (myReader.Read())
-            {
-                folioPoliza++;
-                 
-
-                #region get fecha y folio
-
-                string auxFecha;
-                DateTime fecha;
-
-
-
-                string idRC = myReader["id"].ToString();
-
-                fecha = DateTime.Parse(myReader["fechaRecepcion"].ToString());
-
-                auxFecha = fecha.Year.ToString();
-
-                if (fecha.Month < 10)
-                {
-                    auxFecha += "0" + fecha.Month.ToString();
-                }
-                else
-                {
-                    auxFecha += fecha.Month.ToString();
-                }
-
-                if (fecha.Day < 10)
-                {
-                    auxFecha += "0" + fecha.Day.ToString();
-                }
-                else
-                {
-                    auxFecha += fecha.Day.ToString();
-                }
-
-
-                string aux;
-                string nuevoFolioCadena, nuevoFolioOrden, nuevoFolioPago;
-
-
-
-                aux = "00000000" + folioPoliza;
-                nuevoFolioCadena = lastFolioPoliza + aux.Substring(aux.Length - 6);
-
-
-               
-
-                #endregion
-
-
-                Guid idPoliza = Guid.NewGuid();
-
-
-
-                sql = "INSERT INTO poliza (id, fecha, idPeriodoMensual, idEjercicio, documentoFuente, descripcion, idTipoPoliza,  folioCadena)"
-                    + " VALUES ('" + idPoliza + "'"
-                    + ", '" + auxFecha + "'"
-                    + ",'" + idPM + "'"
-                    + ",'" + ejercicio + "'"
-                    + ",'Autorizacion de recepción'"
-                    + ",'Autorizacion de recepción'"
-                    + ", 4"
-                    + ",'" + nuevoFolioCadena + "')";
-                ejecutarsql(sql);
-
-                #region Relacion Origen Asiento
-                Guid idROA = Guid.NewGuid();
-
-
-                sql = " INSERT INTO RelacionOrigenAsiento(id, ejercicio, periodoMensual, ente, año, mes, origenRecepcionCompra)"
-                    + " select newid(),'" + ejercicio + "','" + idPM + "','5D78210F-6D14-4D8C-B12D-4AF971AA6208'," + xAño + "," + xMes + ", idRecepcionCompra"
-                    + " from RecepcionDetalle where idRecepcionCompra = '" + idRC + "'";
-                ejecutarsql(sql);
-
-                sql = " INSERT INTO RelacionOrigenAsientoDetalle(id, idRelacionOrigenAsiento, idOrigenRecepcionDetalle)"
-                     + " select newid(), idroa, idOrigenRecepcionDetalle "
-                     + " from (SELECT  ROW_NUMBER() OVER(ORDER BY id ASC) AS renglon, idRecepcionCompra, id as idOrigenRecepcionDetalle "
-                              + "FROM RecepcionDetalle WHERE idRecepcionCompra = '" + idRC + "') as qwe "
-                     + " inner join (SELECT ROW_NUMBER() OVER(ORDER BY id ASC) AS renglon, origenRecepcionCompra, id as idroa "
-                             + " FROM RelacionOrigenAsiento roa"
-                             + " WHERE origenRecepcionCompra = '" + idRC + "') as rty"
-                     + " on qwe.renglon = rty.renglon";
-
-                ejecutarsql(sql);
-
-                sql = "INSERT INTO AsientoEncabezado (id, fecha, descripcion, idPeriodoMensual, idEjercicio, idPoliza, totalCargos, totalAbonos,origenGastoDetalle , procesoOrigen )"
-                    + "SELECT NEWID(), getdate(), 'devengar', '" + idPM + "', '" + ejercicio + "', '" + idPoliza + "',0,0, road.id, roa.id "
-                    + " from RelacionOrigenAsientoDetalle road "
-                    + " inner join RecepcionDetalle rdet on road.idOrigenRecepcionDetalle = rdet.id"
-                    + " inner join RelacionOrigenAsiento roa on road.idRelacionOrigenAsiento = roa.id "
-                    + " where rdet.idRecepcionCompra = '" + idRC + "'";
-
-                ejecutarsql(sql);
-
-
-                #endregion
-
-                #region asientos Presupuestales    y contables                
-
-                sql = "INSERT INTO AsientoDetalle(id, idAsientoEncabezado, idCuenta, cargo, abono, orden, idEstructuraPresupuetal, idEstructuraPresupuestalMes, esIngreso, esEgreso, idcatalogoauxiliar)"
-                    + " select newid(), ae.id, pptales.id as icuenta,(case when Paso.descripcion = 'Devengado' then rdet.total else 0 end) as cargo, (case when Paso.descripcion = 'Comprometido' then rdet.total else 0 end) as abono "
-                    + ", 0 as orden, ep.id, epm.id, 0 as esIngreso, 1 as esEgreso, rdet.idproveedor"
-                    + " from RecepcionDetalle rdet "
-                    + " inner join SolicitudCompraDetalle sdet on rdet.idSolicitudCompraDetalle = sdet.id "
-                    + " inner join ProgramaPresupuesto pp on sdet.idprogramapresupuesto = pp.id "
-                    + " inner join EstructuraPresupuestal ep on ep.idProgramaPresupuesto = pp.id"
-                    + " inner join EstructuraPresupuestalMes epm on epm.idEstructuraPresupuestal = ep.id "
-                    + " inner join cuenta c on ep.idCuenta = c.id "
-                    + " inner join cuenta pptales on c.id = pptales.idOrigenContable"
-                    + " inner join paso on pptales.idpaso = paso.id"
-                    + " inner join RelacionOrigenAsientoDetalle road on road.idOrigenRecepcionDetalle = rdet.id"
-                    + " inner join RelacionOrigenAsiento roa on roa.id = road.idRelacionOrigenAsiento"
-                    + " inner join AsientoEncabezado ae on procesoOrigen = roa.id"
-                    + " where rdet.idRecepcionCompra = '" + idRC + "'"
-                    + " and paso.descripcion in ('Comprometido', 'Devengado')"
-                    + " and epm.idPeriodoMensual = '" + idPM + "'";
-                ejecutarsql(sql);
-
-
-
-                sql = "INSERT INTO AsientoDetalle(id, idAsientoEncabezado, idCuenta, cargo, abono, orden, esIngreso, esEgreso, idCatalogoAuxiliar, idEstructuraPresupuetal, idEstructuraPresupuestalMes)"
-                    + " SELECT newid(), AsientoEncabezado.id, case when paso.descripcion = 'Devengado' then cuenta.id else cuentapuente.id end as idcuenta,   AsientoDetalle.cargo , AsientoDetalle.abono, 0,0,1, "
-                    + " idCatalogoAuxiliar, idEstructuraPresupuetal, idEstructuraPresupuestalMes"
-                    + " FROM AsientoEncabezado INNER JOIN RelacionOrigenAsiento ON AsientoEncabezado.procesoOrigen = RelacionOrigenAsiento.id"
-                    + " INNER JOIN AsientoDetalle ON AsientoEncabezado.id = AsientoDetalle.idAsientoEncabezado"
-                    + " INNER JOIN EstructuraPresupuestal ON AsientoDetalle.idEstructuraPresupuetal = EstructuraPresupuestal.id"
-                    + " INNER JOIN clasificador ON EstructuraPresupuestal.idCuenta = Clasificador.idCuenta"
-                    + " INNER JOIN cuenta ON Clasificador.idCuenta = cuenta.id"
-                    + " INNER JOIN cuenta AS cuentapuente ON Clasificador.idCuentaPuente = cuentapuente.id"
-                    + " INNER JOIN cuenta AS presupuestales ON AsientoDetalle.idCuenta = presupuestales.id"
-                    + " INNER JOIN  paso ON presupuestales.idPaso = paso.id"
-                    + " WHERE origenRecepcionCompra = '" + idRC + "'"
-                    + " AND Clasificador.idClasificacion = 'CAF82679-9EC0-490F-B0DA-91E5F0FF1C64'"
-                    + " AND paso.descripcion in ('Devengado', 'Comprometido')";
-                ejecutarsql(sql);
-
-
-                sql = "update AsientoDetalle set idCatalogoAuxiliar = null"
-                    + " from RelacionOrigenAsiento roa"
-                    + " inner join AsientoEncabezado ae on procesoOrigen = roa.id"
-                    + " inner join AsientoDetalle ad on idAsientoEncabezado = ae.id"
-                    + " inner join cuenta c on idCuenta = c.id"
-                    + " where origenRecepcionCompra = '" + idRC + "'"
-                    + " and c.codigoCompleto like '8%'";
-                ejecutarsql(sql);
-
-                #endregion
-
-            }
-
-        }
-
-        public void ordendepago(int xMes, string idPM, string ejercicio, int xAño)
-        {
-            SqlConnection myConnection = new SqlConnection(cadena);
-            myConnection.Open();
-
-            string sql;
-
-            sql = "select * from RecepcionCompra where idSolicitudCompra in (select sc.id from SolicitudCompra sc inner join tiposcompras tc on sc.folio = tc.folio)";
-            SqlDataReader myReader = null;
-            SqlCommand myCommand = new SqlCommand(sql, myConnection);
-
-            myReader = myCommand.ExecuteReader();
-
-
-            //folios polizas
-            string lastFolioPoliza;
-            int folioPoliza;
-            sql = "select max(right(foliocadena,4))  from poliza where idperiodomensual = '" + idPM + "' and idtipopoliza = 4";
-            lastFolioPoliza = getTexto(sql);
-            folioPoliza = int.Parse(lastFolioPoliza);
-            lastFolioPoliza = "EG2023" + xMes.ToString();
-            if (xMes < 10) lastFolioPoliza = "EG2023" + xMes.ToString();
-            if (xMes == 1 || xMes == 3 || xMes == 5 || xMes == 7 || xMes == 8 || xMes == 10 || xMes == 12) lastFolioPoliza += "31";
-            if (xMes == 2) lastFolioPoliza += "28";
-            if (xMes == 4 || xMes == 6 || xMes == 9 || xMes == 11) lastFolioPoliza += "30";
-
-
-            ////foliosordenpago
-            string lastFolioOrden;
-            int folioOrden;
-            sql = "select max(right(folio,4))  from ordenpago where idperiodomensual = '" + idPM + "'";
-            lastFolioOrden = getTexto(sql);
-            folioOrden = int.Parse(lastFolioOrden);
-            lastFolioOrden = "OP2023" + xMes.ToString();
-            if (xMes < 10) lastFolioOrden = "OP20230" + xMes.ToString();
-
-
-
-            while (myReader.Read())
-            {
-                folioPoliza++;
-
-
-                #region get fecha y folio
-
-                string auxFecha;
-                DateTime fecha;
-
-
-
-                string idRC = myReader["id"].ToString();
-
-                fecha = DateTime.Parse(myReader["fechaRecepcion"].ToString());
-
-                auxFecha = fecha.Year.ToString();
-
-                if (fecha.Month < 10)
-                {
-                    auxFecha += "0" + fecha.Month.ToString();
-                }
-                else
-                {
-                    auxFecha += fecha.Month.ToString();
-                }
-
-                if (fecha.Day < 10)
-                {
-                    auxFecha += "0" + fecha.Day.ToString();
-                }
-                else
-                {
-                    auxFecha += fecha.Day.ToString();
-                }
-
-
-                string aux;
-                string nuevoFolioCadena, nuevoFolioOrden, nuevoFolioPago;
-
-
-
-                aux = "00000000" + folioPoliza;
-                nuevoFolioCadena = lastFolioPoliza + aux.Substring(aux.Length - 6);
-
-                aux = "00000000" + folioOrden;
-                nuevoFolioOrden = lastFolioOrden + aux.Substring(aux.Length - 6);
-
-
-                #endregion
-
-                sql = "SELECT proveedor from solicitudcompra where id = '" + myReader["idSolicitudCompra"].ToString() + "'";
-                string idproveedor = getTexto(sql);
-
-                #region orden de pago
-
-                Guid idOrden = Guid.NewGuid();
-
-                sql = "insert into ordenpago (id, folio,  fechaTramite, fechaProgramada, importepago, tipoOrdenPago, idCatalogoAuxiliar, estatus, status, origenOrden, pagado, montopagado, pagogenerado, idejercicio, idperiodomensual, observaciones)"
-                    + " values ('" + idOrden.ToString() + "'"
-                    + ",'" + nuevoFolioOrden + "'"
-                    + ",'" + auxFecha + "'"
-                    + ",'" + auxFecha + "'"
-                    + ", 0, 'Presupuestal',  '" + idproveedor + "'  ,'SinAutorizar',1,'Recepción Compra',0,0,0"
-                    + ",'" + ejercicio + "'"
-                    + ",'" + idPM + "','" + myReader["observaciones"].ToString() + "')";
-                ejecutarsql(sql);
-
-
-                Guid idROOP = Guid.NewGuid();
-                sql = "insert into relacionorigenordenpago (id, idordenpago, origenRecepcionCompra)"
-                    + "values ('" + idROOP.ToString() + "','" + idOrden + "','" + idRC + "')";
-                ejecutarsql(sql);
-
-
-
-                sql = "insert into relacionorigenordenpagodetalle (id, encabezadorelacion, idDetalleOrigenRecepcion)"
-                    + " select newid(),'" + idROOP.ToString() + "', id "
-                    + " from RecepcionDetalle "
-                    + " where idRecepcionCompra = '" + idRC + "'";
-                ejecutarsql(sql);
-
-
-                sql = "insert into ordenpagodetalle (id, importepasivo, pagado, montopagado,idordenpago,detalleorigen, status,idejercicio,idperiodomensual,idente,idcuentapasivo)"
-                  + " select newid(), rd.total, 0, 0, '" + idOrden.ToString() + "', roopd.id,  1, '" + ejercicio + "', '" + idPM + "', '5D78210F-6D14-4D8C-B12D-4AF971AA6208', cuenta.id "
-                  + " from relacionorigenordenpagodetalle roopd "
-                    + " inner join RelacionOrigenOrdenPago roop on encabezadoRelacion = roop.id"
-                    + " inner join RecepcionDetalle rd on roopd.idDetalleOrigenRecepcion = rd.id"
-                    + " inner join SolicitudCompraDetalle scd on rd.idSolicitudCompraDetalle = scd.id"
-                    + " inner join ProgramaPresupuesto pp on idProgramaPresupuesto = pp.id"
-                    + " inner join clasificador cogs on cogs.id = pp.idCOG"
-                    + " inner join cuenta on cogs.idCuentaPuente = cuenta.id"
-                    + " where roop.origenRecepcionCompra = '" + idRC  + "'";
-
-                ejecutarsql(sql);
-
-
-
-                sql = "update OrdenPago"
-                    + " set ordenpago.importePago = tt.importe"
-                    + " from OrdenPago inner join (select idOrdenPago, sum(importepasivo) as importe"
-                                                + " from ordenpagodetalle "
-                                                + " where idOrdenPago = '" + idOrden.ToString() + "'"
-                                                + " group by idOrdenPago) as tt"
-                    + " on  OrdenPago.id = tt.idOrdenPago";
-                ejecutarsql(sql);
-
-
-                 
-
-
-                #endregion
-
-
-            }
-
-        }
-
-
-        public void polizasOP(int xMes, string idPM, string ejercicio, int xAño)
-        {
-            SqlConnection myConnection = new SqlConnection(cadena);
-            myConnection.Open();
-
-            string sql;
-
-            
-            sql = "select distinct rc.*, idOrdenPago from RecepcionCompra rc inner join RelacionOrigenOrdenPago roop on rc.id = roop.origenRecepcionCompra "
-                + " where idSolicitudCompra in (select sc.id from SolicitudCompra sc inner join tiposcompras tc on sc.folio = tc.folio)";
-
-            SqlDataReader myReader = null;
-            SqlCommand myCommand = new SqlCommand(sql, myConnection);
-
-            myReader = myCommand.ExecuteReader();
-
-
-            //folios polizas
-            string lastFolioPoliza;
-            int folioPoliza;
-            sql = "select max(right(foliocadena,4))  from poliza where idperiodomensual = '" + idPM + "' and idtipopoliza = 4";
-            lastFolioPoliza = getTexto(sql);
-            folioPoliza = int.Parse(lastFolioPoliza);
-            lastFolioPoliza = "EG2023" + xMes.ToString();
-            if (xMes < 10) lastFolioPoliza = "EG2023" + xMes.ToString();
-            if (xMes == 1 || xMes == 3 || xMes == 5 || xMes == 7 || xMes == 8 || xMes == 10 || xMes == 12) lastFolioPoliza += "31";
-            if (xMes == 2) lastFolioPoliza += "28";
-            if (xMes == 4 || xMes == 6 || xMes == 9 || xMes == 11) lastFolioPoliza += "30";
-
-
-            //foliosPagos
-            string lastFolioPago;
-            int folioPago;
-            sql = "select max(right(folio,4))  from pago where idperiodomensual = '" + idPM + "'";
-            lastFolioPago = getTexto(sql);
-            folioPago = int.Parse(lastFolioPago);
-            lastFolioPago = "P2023" + xMes.ToString();
-            if (xMes < 10) lastFolioPago = "P20230" + xMes.ToString();
-
-
-            while (myReader.Read())
-            {
-                folioPoliza++;                
-                folioPago++;
-
-                #region get fecha y folio
-
-                string auxFecha;
-                DateTime fecha;
-
-
-
-                string idRC = myReader["id"].ToString();
-                string idOP = myReader["idOrdenPago"].ToString();
-
-                fecha = DateTime.Parse(myReader["fechaRecepcion"].ToString());
-
-                auxFecha = fecha.Year.ToString();
-
-                if (fecha.Month < 10)
-                {
-                    auxFecha += "0" + fecha.Month.ToString();
-                }
-                else
-                {
-                    auxFecha += fecha.Month.ToString();
-                }
-
-                if (fecha.Day < 10)
-                {
-                    auxFecha += "0" + fecha.Day.ToString();
-                }
-                else
-                {
-                    auxFecha += fecha.Day.ToString();
-                }
-
-
-                string aux;                
-                string nuevoFolioCadena, nuevoFolioPago;
-
-
-                aux = "00000000" + folioPoliza;
-                nuevoFolioCadena = lastFolioPoliza + aux.Substring(aux.Length - 6);
-
-                aux = "00000000" + folioPago;
-                nuevoFolioPago = lastFolioPago + aux.Substring(aux.Length - 6);
-
-                #endregion
-
-
-                Guid idPoliza = Guid.NewGuid();
-
-
-
-                sql = "INSERT INTO poliza (id, fecha, idPeriodoMensual, idEjercicio, documentoFuente, descripcion, idTipoPoliza,  folioCadena)"
-                    + " VALUES ('" + idPoliza + "'"
-                    + ", '" + auxFecha + "'"
-                    + ",'" + idPM + "'"
-                    + ",'" + ejercicio + "'"
-                    + ",'Autorización  de orden de pago de recepción de compra xxx" + auxFecha + "'"
-                    + ",'Autorización  de orden de pago de recepción de compra xxx" + auxFecha +  "'"
-                    + ", 4"
-                    + ",'" + nuevoFolioCadena + "')";
-                ejecutarsql(sql);
-
-                #region Relacion Origen Asiento
-                Guid idROAOP = Guid.NewGuid();
-                Guid idROAOPDet = Guid.NewGuid();
-                sql = "INSERT INTO RelacionOrigenAsiento (id, ejercicio,periodoMensual, ente, año, mes, origenordenpago)"
-                    + " VALUES ('" + idROAOP + "','" + ejercicio + "','" + idPM + "','5D78210F-6D14-4D8C-B12D-4AF971AA6208'," + xAño + "," + xMes + ", '" + idOP + "')";
-                ejecutarsql(sql);
-
-
-
-                sql = "INSERT INTO RelacionOrigenAsientoDetalle (id, idRelacionOrigenAsiento) "
-                    + "  VALUES ('" + idROAOPDet + "', '" + idROAOP + "')";
-                ejecutarsql(sql);
-
-
-
-                #endregion
-
-                #region Asientos                
-
-                Guid idAE = Guid.NewGuid();
-
-                sql = "INSERT INTO AsientoEncabezado (id, fecha, descripcion, idPeriodoMensual, idEjercicio, idPoliza, totalCargos, totalAbonos,origenGastoDetalle , procesoOrigen )"
-                    + " VALUES ('" + idAE.ToString() + "', '" + auxFecha + "', 'Ejercer', '" + idPM + "', '" + ejercicio + "', '" + idPoliza + "',0,0, '" + idROAOPDet + "', '" + idROAOP + "') ";
-
-                ejecutarsql(sql);
-
-                #region asientos Presupuestales
-
-                sql = "INSERT INTO AsientoDetalle(id, idAsientoEncabezado, idCuenta, cargo, abono, orden, idEstructuraPresupuetal, idEstructuraPresupuestalMes, esIngreso, esEgreso)"
-                     + " select newid(), '" + idAE.ToString() + "', pptales.id as icuenta,(case when Paso.descripcion = 'Ejercido' then rdet.total else 0 end) as cargo, (case when Paso.descripcion = 'Devengado' then rdet.total else 0 end) as abono "
-                     + ", 0 as orden, ep.id, epm.id, 0 as esIngreso, 1 as esEgreso"
-                     + " from RecepcionDetalle rdet "
-                     + " inner join SolicitudCompraDetalle sdet on rdet.idSolicitudCompraDetalle = sdet.id "
-                     + " inner join ProgramaPresupuesto pp on sdet.idprogramapresupuesto = pp.id "
-                     + " inner join EstructuraPresupuestal ep on ep.idProgramaPresupuesto = pp.id"
-                     + " inner join EstructuraPresupuestalMes epm on epm.idEstructuraPresupuestal = ep.id "
-                     + " inner join cuenta c on ep.idCuenta = c.id "
-                     + " inner join cuenta pptales on c.id = pptales.idOrigenContable"
-                     + " inner join paso on pptales.idpaso = paso.id"
-                     + " inner join RelacionOrigenAsientoDetalle road on road.idOrigenRecepcionDetalle = rdet.id"
-                     + " inner join RelacionOrigenAsiento roa on roa.id = road.idRelacionOrigenAsiento"
-                     + " inner join AsientoEncabezado ae on procesoOrigen = roa.id"
-                     + " where rdet.idRecepcionCompra = '" + idRC + "'"
-                     + " and paso.descripcion in ('Ejercido', 'Devengado')"
-                     + " and epm.idPeriodoMensual = '" + idPM + "'";
-                ejecutarsql(sql);
-
-
-                #endregion
-
-
-
-                sql = "UPDATE ordenpago SET estatus = 'Autorizada' WHERE id = '" + idOP + "'";
-                ejecutarsql(sql);
-
-
-
-
-                #region pago
-                Guid idPago = Guid.NewGuid();
-
-
-
-
-                aux = "00000000" + folioPago;
-                nuevoFolioPago = lastFolioPago + aux.Substring(aux.Length - 6);
-
-                sql = "insert into  pago (id, folio, fechapago, importe, observaciones,status,estatus, idcatalogoauxiliar, idEjercicio,  idPeriodoMensual, varioscheques, iva)"
-                    + " select '" + idPago.ToString() + "', '" + nuevoFolioPago + "', fechaTramite, importepago,observaciones,1 , 'Sin Autorizar', idcatalogoauxiliar, idEjercicio, idPeriodoMensual,0,0"  
-                    + " from OrdenPago "
-                    + " where id = '" + idOP.ToString() + "' ";
-
-                ejecutarsql(sql);
-
-
-                sql = "insert into PagoOrdenPago (id, importepagar, ordenpago, pago)"
-                    + " select newid(), importepago, id, '" + idPago.ToString() + "' as pago"
-                    + " from OrdenPago "
-                    + " where id = '" + idOP.ToString() + "' ";
-                ejecutarsql(sql);
-
-
-                sql = "insert into pagodetalle (id, importepasivo, detalleorigen, status, idordenpagodetalle, idcuentapasivo, idejercicio, idperiodomensual, idente, idpago)"
-                    + " select  newid(),  opd.importepasivo, opd.detalleorigen, 1, opd.id, idcuentapasivo, op.idejercicio, op.idperiodomensual, idente, '" + idPago.ToString() + "'"
-                    + " from OrdenPago op"
-                    + " inner join ordenpagodetalle opd on op.id = opd.idOrdenPago "
-                    + " where op.id = '" + idOP.ToString() + "' ";
-                ejecutarsql(sql);
-
-
-                sql = "update OrdenPago set pagogenerado = 1 where id = '" + idOP.ToString() + "'";
-                ejecutarsql(sql);
-
-
-
-
-                #endregion
-
-
-
-
-
-                #endregion
-
-
-            }
-
-        }
-
-
-        public string getTexto(string sql)
-        {
-            string resolve = "";
-            SqlConnection myConnection = new SqlConnection(cadena);
-
-            try
-            {
-                //abrir la conexion
-                myConnection.Open();
-
-
-                SqlDataReader myReader = null;
-                SqlCommand myCommand = new SqlCommand(sql, myConnection);
-
-                //Ejecutar el comando SQL
-                myReader = myCommand.ExecuteReader();
-
-                //Imprimir un encabezado para mostrar una tabla de resultados
-
-                //Mostrar los datos de la tabla
-                while (myReader.Read())
-                {
-                    resolve = myReader[0].ToString();
-                }
-
-                return resolve;
-
-
-
-            }
-            catch (Exception e)
-            {
-                return "";
-
-            }
-
-
-
-        }
-
-        public void ejecutarsql(string sql)
-        {
-            try
-            {
-
-
-                SqlConnection sqlConnection1 = new SqlConnection(cadena);
-                SqlCommand cmd = new SqlCommand();
-                cmd.CommandType = System.Data.CommandType.Text;
-                cmd.CommandText = sql;
-                cmd.Connection = sqlConnection1;
-
-                sqlConnection1.Open();
-                cmd.ExecuteNonQuery();
-                sqlConnection1.Close();
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-
-        }
-
-        private void Button2_Click(object sender, EventArgs e)
-        {
-            OleDbConnection conexion = null;
-            DataSet dataSet = null;
-            OleDbDataAdapter dataAdapter = null;
-            string hoja = "hoja1";
-            string archivo = "c://bin/carga.xlsx";
-            string consultaHojaExcel = "Select * from [" + hoja + "$]";
-
-            //esta cadena es para archivos excel 2007 y 2010
-            string cadenaConexionArchivoExcel = "provider=Microsoft.ACE.OLEDB.12.0;Data Source='" + archivo + "';Extended Properties=Excel 12.0;";
-
-            //para archivos de 97-2003 usar la siguiente cadena
-            //string cadenaConexionArchivoExcel = "provider=Microsoft.Jet.OLEDB.4.0;Data Source='" + archivo + "';Extended Properties=Excel 8.0;";
-
-            //Validamos que el usuario ingrese el nombre de la hoja del archivo de excel a leer
-            if (string.IsNullOrEmpty(hoja))
-            {
-                MessageBox.Show("No hay una hoja para leer");
-            }
-            else
-            {
-                try
-                {
-                    //Si el usuario escribio el nombre de la hoja se procedera con la busqueda
-                    conexion = new OleDbConnection(cadenaConexionArchivoExcel);//creamos la conexion con la hoja de excel
-                    conexion.Open(); //abrimos la conexion
-                    dataAdapter = new OleDbDataAdapter(consultaHojaExcel, conexion); //traemos los datos de la hoja y las guardamos en un dataSdapter
-                    dataSet = new DataSet(); // creamos la instancia del objeto DataSet
-                    dataAdapter.Fill(dataSet, hoja);//llenamos el dataset
-                //    dataGridView1.DataSource = dataSet.Tables[0]; //le asignamos al DataGridView el contenido del dataSet
-                    conexion.Close();//cerramos la conexion
-                                     //dataGridView1.AllowUserToAddRows = false;       //eliminamos la ultima fila del datagridview que se autoagrega
-
-
-                    foreach (var row in dataSet.Tables[0].Rows)
-                    {
-                        Console.WriteLine(row.ToString());
+                        //if (!databaseCreator.HasTables())  databaseCreator.CreateTables();
                     }
-
-                }
-                catch (Exception ex)
-                {
-                    //en caso de haber una excepcion que nos mande un mensaje de error
-                    MessageBox.Show("Error, Verificar el archivo o el nombre de la hoja", ex.Message);
-                }
+                
+            }catch(Exception ex ){
+                Console.WriteLine(ex.Message);
             }
+            
         }
+
+        public DbSet<Sistema> Sistemas { get; set; }
+        public DbSet<Modulo> Modulos { get; set; }
+        
+
+      
+ 
+        
     }
 }
 
+---------------------------------
 
-/*
+
+    const [showEnte, setShowEnte] = useState(true)
+    const [showOrigen, setShowOrigen] = useState(true)
+    const [showCRI, setShowCRI] = useState(true)
+    const [showTotal, setShowTotal] = useState(true)
+    const [showMeses, setShowMeses] = useState(true)
+
+
+
+
+  <Row>
+            <Col sm={3}>
+                <Icon size='large'
+                    name='angle double down'
+                    onClick={ () => setShowCheckboxes(!showCheckboxes)} 
+                >
+                    Columnas
+                </Icon>                
+            </Col>            
+        </Row>
+        <br />
  
-  select * from AsientoDetalle inner join AsientoEncabezado on idAsientoEncabezado = AsientoEncabezado.id where procesoOrigen in (select id from RelacionOrigenAsiento where origenOrdenPago in (select  idOrdenPago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-select * from AsientoDetalle inner join AsientoEncabezado on idAsientoEncabezado = AsientoEncabezado.id where procesoOrigen in (select id from RelacionOrigenAsiento where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-select * from AsientoDetalle inner join AsientoEncabezado on idAsientoEncabezado = AsientoEncabezado.id where procesoOrigen in (select id from RelacionOrigenAsiento where origenSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-
-select * from AsientoEncabezado where procesoorigen in (select id from RelacionOrigenAsiento where origenPago in (select id from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) )))
-
-
-select * from AsientoEncabezado where procesoOrigen in (select id from RelacionOrigenAsiento where origenOrdenPago in (select  idOrdenPago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-select * from AsientoEncabezado where procesoOrigen in (select id from RelacionOrigenAsiento where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-select * from AsientoEncabezado where procesoOrigen in (select id from RelacionOrigenAsiento where origenSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-
-select * from poliza where folio > 74484
-
-
-
-select* from RelacionOrigenAsientoDetalle where  idRelacionOrigenAsiento in (select id from RelacionOrigenAsiento where origenOrdenPago in (select  idOrdenPago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-select * from RelacionOrigenAsiento where origenOrdenPago in (select  idOrdenPago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-
-select* from RelacionOrigenAsientoDetalle where idOrigenRecepcionDetalle in (select id from RecepcionDetalle where idRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-select* from RelacionOrigenAsiento where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-
-select* from RelacionOrigenAsientoDetalle where idOrigenCompraDetalle in (select id from SolicitudCompraDetalle where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-select* from RelacionOrigenAsiento where origenSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))
-
-
-select * from PagoDetalle where idPago in (select id from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) ))
-select * from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) )
-select * from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-
-
----orden de pago
-select * from relacionorigenordenpagodetalle where encabezadoRelacion in (select id from relacionorigenordenpago where idOrdenPago in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) order  by encabezadoRelacion
-select * from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-select * from OrdenPagoDetalle where idOrdenPago in (select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-select * from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-
-select* from RecepcionDetalle where idRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))) order by idRecepcionCompra
-select* from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))
-
-select* from SolicitudCompraDetalle where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))
-select* from SolicitudCompra where folio in (select folio from tiposcompras)
-  
-
-   
-
-     */
-
-
-
-
-/*
-c8srdr
-GJ2THw GZ
-
-
-delete AsientoDetalle  from AsientoEncabezado ae inner join AsientoDetalle ad on idAsientoEncabezado = ae.id inner join RelacionOrigenAsiento roa on procesoOrigen = roa.id  where roa.origenPago in (select id from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) ))
-update AsientoEncabezado  set AsientoEncabezado.origenGastoDetalle = null from AsientoEncabezado ae inner join RelacionOrigenAsiento roa on procesoOrigen = roa.id  where roa.origenPago in (select id from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) ))
-delete RelacionOrigenAsientoDetalle from AsientoEncabezado ae inner join RelacionOrigenAsiento roa on procesoOrigen = roa.id  inner join RelacionOrigenAsientoDetalle road on roa.id = road.idRelacionOrigenAsiento where roa.origenPago in (select id from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) )) 
-delete AsientoEncabezado from AsientoEncabezado ae inner join RelacionOrigenAsiento roa on procesoOrigen = roa.id  where roa.origenPago in (select id from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) ))
-delete from RelacionOrigenAsientoDetalle where idRelacionOrigenAsiento in  (select roa.id from RelacionOrigenAsiento roa left join AsientoEncabezado ae on procesoOrigen = roa.id where ae.id is null and origenpago is not null)
-delete RelacionOrigenAsiento from RelacionOrigenAsiento roa left join AsientoEncabezado ae on procesoOrigen = roa.id where ae.id is null and origenpago is not null
-
-
-
-
-delete AsientoDetalle from AsientoDetalle inner join AsientoEncabezado on idAsientoEncabezado = AsientoEncabezado.id where procesoOrigen in (select id from RelacionOrigenAsiento where origenOrdenPago in (select  idOrdenPago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))	
-delete AsientoDetalle from AsientoDetalle inner join AsientoEncabezado on idAsientoEncabezado = AsientoEncabezado.id where procesoOrigen in (select id from RelacionOrigenAsiento where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-delete AsientoDetalle from AsientoDetalle inner join AsientoEncabezado on idAsientoEncabezado = AsientoEncabezado.id where procesoOrigen in (select id from RelacionOrigenAsiento where origenSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-
-delete from AsientoEncabezado where procesoOrigen in (select id from RelacionOrigenAsiento where origenOrdenPago in (select  idOrdenPago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-delete from AsientoEncabezado where procesoOrigen in (select id from RelacionOrigenAsiento where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-delete from AsientoEncabezado where procesoOrigen in (select id from RelacionOrigenAsiento where origenSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-
-delete from PagoDetalleCuentaPago where encabezadoPago in (select id from pago  where observaciones like 'compra de %')
-delete from PagoDetalle where idPago in (select id from pago  where observaciones like 'compra de %')
-delete from pago  where observaciones like 'compra de %' 
-
-
-delete from PagoDetalle where idPago in (select id from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) ))
-delete from pago where id in (select pago from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))) )
-delete from pagoordenpago where ordenpago in ( select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-
-
-
-
-delete from poliza where folio >74484
-
----orden de pago
-delete from OrdenPagoDetalle where idOrdenPago in (select id from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-delete from OrdenPago where id in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-delete from relacionorigenordenpagodetalle where encabezadoRelacion in (select id from relacionorigenordenpago where idOrdenPago in (select idordenpago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-delete from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-
---roa op
-delete from RelacionOrigenAsientoDetalle where  idRelacionOrigenAsiento in (select id from RelacionOrigenAsiento where origenOrdenPago in (select  idOrdenPago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))))
-delete from RelacionOrigenAsiento where origenOrdenPago in (select  idOrdenPago from relacionorigenordenpago where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
---roa rc
-delete from RelacionOrigenAsientoDetalle where idOrigenRecepcionDetalle in (select id from RecepcionDetalle where idRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))))
-delete from RelacionOrigenAsiento where origenRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
---roa sc
-delete from RelacionOrigenAsientoDetalle where idOrigenCompraDetalle in (select id from SolicitudCompraDetalle where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-delete from RelacionOrigenAsiento where origenSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))
-
-delete from RecepcionDetalle where idRecepcionCompra in (select id from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras)))
-delete from RecepcionCompra where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))
-delete from SolicitudCompraDetalle where idSolicitudCompra in (select id from SolicitudCompra where folio in (select folio from tiposcompras))
-delete from SolicitudCompra where folio in (select folio from tiposcompras)
-
-GO
+        {
+            showCheckboxes
+                ? (
+                    <Row>
+                        <Col sm={3}> 
+                            <Checkbox toggle
+                                label='Ente'
+                                onChange={(e, data: any) => {setShowEnte(data.checked)}}                    
+                                checked={showEnte}
+                                />
+                            <Divider />
+                            <Checkbox toggle
+                                label='Origen'
+                                onChange={(e, data: any) => {setShowOrigen(data.checked)}}                    
+                                checked={showOrigen}
+                                />
+                            <Divider />
+                            <Checkbox toggle
+                                label='CRI'
+                                onChange={(e, data: any) => {setShowCRI(data.checked)}}                    
+                                checked={showCRI}
+                                />
+                            <Divider />
+                            <Checkbox toggle
+                                label='Total'
+                                onChange={(e, data: any) => {setShowTotal(data.checked)}}                    
+                                checked={showTotal}
+                                />
+                            <Divider />
+                            <Checkbox toggle
+                                label='Meses'
+                                onChange={(e, data: any) => {setShowMeses(data.checked)}}                    
+                                checked={showMeses}
+                                />
+                        
+                        </Col>
+                    </Row>
+                )
+                : null
+        }
 
 
 
 
 
 
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE TABLE[dbo].[tiposcompras]
-(
-
-   [id][int] NULL,
-
-   [fecha][date] NULL,
-
-   [proveedor][nvarchar](50) NULL,
-	[observaciones] [nvarchar] (550) NULL,
-	[tipocompra] [nvarchar] (50) NULL,
-	[servicio] [nvarchar] (50) NULL,
-	[bien] [nvarchar] (50) NULL,
-	[programa] [nvarchar] (50) NULL,
-	[cog] [nvarchar] (50) NULL,
-	[origeningreso] [nvarchar] (50) NULL,
-	[precio] [money] NULL,
-	[folio] [nvarchar] (50) NULL,
-	[idPP] [nvarchar] (50) NULL,
-	[idbien] [nvarchar] (50) NULL
-) ON[PRIMARY]
-GO
+***********************
 
 
+const Menu = () => {
 
+    const [token, setToken] = useState<string|null>(null)
 
+    useEffect(() => {
+      
+        let token = sessionStorage.getItem("tokenid")
+    
+        setToken(token)
+      
+    }, [])
+    
 
- */
+    const removeSSS = () => {
+        sessionStorage.removeItem("tokenid")
+        setToken(null)
+      }
+
+      const loadSSS = () => {
+        sessionStorage.setItem("tokenid","inthened")
+      }
