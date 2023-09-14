@@ -179,3 +179,480 @@ const Menu = () => {
       const loadSSS = () => {
         sessionStorage.setItem("tokenid","inthened")
       }
+
+
+
+
+    const toMoney = (valor?:number) => {
+
+        return valor?.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0})
+
+    }
+
+    ************************
+
+
+    using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentValidation;
+using MediatR;
+using sigmaAuditor.Context;
+using sigmaAuditor.Entities;
+using System.Globalization;
+using Spire.Xls;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+
+namespace usercontrol.Application.Usuarios
+{
+    public class CreateUser
+    {
+        public class Command : IRequest
+        {
+            public string Login { get; set; }            
+            public string Password { get; set; }            
+            public string Nombre { get; set; }            
+            
+            
+            
+        }
+
+        public class Handler : IRequestHandler<Command>
+        {
+            private MyContext _context;
+            
+            private readonly IWebHostEnvironment   _env;
+
+
+            public Handler(MyContext myContext, IWebHostEnvironment env)
+            {
+                _context = myContext ?? throw new ArgumentNullException(nameof(myContext));
+                _env = env ?? throw new ArgumentNullException(nameof(env));
+                
+            }
+
+
+            public class CommandValidator : AbstractValidator<Command>{
+                
+                public CommandValidator()
+                {                    
+                    RuleFor(x => x.Login).NotEmpty();                                        
+                    RuleFor(x => x.Password).NotEmpty();                    
+                    RuleFor(x => x.Nombre).NotEmpty();                    
+                }
+            }
+
+            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            {   
+
+
+                var usuario = new Usuario{                    
+                    
+                    Login = request.Login,                    
+                    Password = request.Password,
+                    Nombre = request.Nombre,
+                    Activo= true
+                };
+
+                _context.Usuarios.Add(usuario);
+                var success = await _context.SaveChangesAsync() > 0;
+              
+                
+                await _context.SaveChangesAsync();
+
+
+                if (success )
+                    return Unit.Value;
+
+                throw new Exception("Ocurrió un problema al guardar los datos");
+
+                
+            }
+
+           
+
+        }            
+    
+     
+    }
+}
+
+
+
+********************
+
+using System;
+using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using sigmaAuditor.Application.Errors;
+using sigmaAuditor.Context;
+
+
+namespace usercontrol.Application.Usuarios
+{
+    public class GetAccess
+    {        
+        public class Command: IRequest<string>{
+            
+            public string Login { get; set; }
+            public string Password { get; set; }           
+            public string Nombre { get; set; }           
+            
+            
+        }
+
+
+
+        public class Handler : IRequestHandler<Command, string>
+        {
+            private MyContext _context;
+            
+
+            public Handler(MyContext context)
+            {
+                _context = context ?? throw new ArgumentNullException(nameof(context));               
+
+            }
+
+
+            public async Task<string> Handle(Command request, CancellationToken cancellationToken)
+            {              
+                string accesoPermitido = "";
+
+                var usuario = await _context.Usuarios.Where(x => x.Login == request.Login 
+                                                                && x.Password == request.Password
+                                                                && x.Activo == true).FirstOrDefaultAsync();
+
+                if (usuario != null)
+                    accesoPermitido = usuario.Nombre;
+ 
+
+                return accesoPermitido;
+            }
+        }
+    }
+}
+
+
+***********************
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using usercontrol.Application.Usuarios;
+using sigmaAuditor.Context;
+using sigmaAuditor.Entities;
+
+
+namespace sigmaAuditor.Controllers
+{
+    [ApiController]
+    [Route("api/users")]
+    public class UsuariosController: ControllerBase
+    {
+        private IMediator _mediator;
+        private IConfiguration _configuration;
+
+        public UsuariosController(IMediator mediator,IConfiguration configuration)        
+        {
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        }
+
+        [HttpPost]
+        public async Task<Unit> Create([FromBody] CreateUser.Command command){
+
+            return await _mediator.Send(command);
+            
+        }
+
+        [HttpPost("getAccess")]
+        public async Task<string> getAccess([FromBody] GetAccess.Command commmand ){
+            return await _mediator.Send(commmand);
+        }
+
+
+        
+
+    }
+
+
+}
+****************************************
+
+
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace sigmaAuditor.Entities
+{
+    public class Usuario
+    {
+
+           [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        public string Nombre {get; set;}
+        public string Login { get; set; }
+        public string Password { get; set; }        
+                
+        public bool Activo { get; set; }     
+        
+        
+    }
+}
+
+        public DbSet<Usuario> Usuarios { get; set; }
+
+*******************************
+
+export interface IUsuarios {    
+    login: string,            
+    password: string,    
+    nombre: string
+}
+ 
+
+ **************
+
+ const Usuarios = {    
+    generate: (usuario: IUsuarios) => request.post('/api/users', usuario),
+    login: (usuario: IUsuarios) => request.post('/api/users/getAccess', usuario),    
+}
+
+***************************
+
+import React, { useEffect, useState} from 'react'
+import { Button, Form, Icon, Input, Modal } from 'semantic-ui-react'
+import { IUsuarios } from '../../interfaces/IUsuarios'
+import agent from '../../api/agent'
+import { Container } from 'react-bootstrap'
+
+
+const Users = () => {
+  
+
+    const initialState = {        
+        login: '',
+        password: '',
+        nombre:''
+    }
+
+    
+    const [registro, setRegistro] = useState(initialState)
+
+    
+
+
+    const handleInputChange = (ev: any) => {        
+        setRegistro({
+            ...registro, 
+            [ev.target.name]: ev.target.value
+        })
+    }
+
+
+    const handleSubmit = () => {
+
+        
+
+        agent.Usuarios.generate(registro)
+
+        
+    }
+  
+    return (
+        <>
+
+            <Container>
+ 
+
+            <Form>     
+                    <label>Nombre </label><br />
+                    <Form.Field>                        
+                        <input type="text"  
+                               name = "nombre" 
+                               value= {registro.nombre} 
+                               onChange={handleInputChange}                            
+                        />
+                    </Form.Field>
+
+                    <label>Login </label><br />
+                    <Form.Field>                        
+                        <input type="text"  
+                               name = "login" 
+                               value= {registro.login} 
+                               onChange={handleInputChange}                            
+                        />
+                    </Form.Field>
+
+
+                    <label>Password </label><br />
+                    <Form.Field>                        
+                        <input type="password"  
+                               name = "password" 
+                               value= {registro.password} 
+                               onChange={handleInputChange}                            
+                        />
+                    </Form.Field>
+
+
+                    <Button basic color='green'   onClick={ () => handleSubmit() } >
+                        <Icon name='checkmark' /> Aceptar
+                    </Button>
+
+                    <Button basic color='red' >
+                        <Icon name='remove' /> Cancelar
+                    </Button>    
+                </Form>
+          
+                </Container>
+
+        </>
+  )
+}
+
+export default Users
+
+*****************
+
+
+
+
+import React, {useState} from 'react'
+import { Link } from 'react-router-dom'
+import { Menu,  Form, Button } from 'semantic-ui-react'
+import agent from '../../api/agent'
+
+
+// const SidePanel = () => {    
+const SidePanel: React.FC = () => {
+
+    const [usuario, setUsuario] = useState('')
+    const [pass, setPass] = useState('')
+    const [nombreusuario, setNombreusuario] = useState('')
+
+
+  
+
+    const handleSubmit = ():void => {
+        agent.Usuarios.login({login: usuario, password: pass, nombre:''}).then ((res) =>{            
+
+            if (res == ''){
+                alert('El usuario y contrase;a no coinciden')
+            }else{
+
+
+                
+                setUsuario('')
+                setPass('')
+                setNombreusuario(res)
+
+            }
+        })
+    }
+  
+
+
+    const formLogin = () => {
+
+        return (
+            <>
+            <br />
+            <br />
+            <br />
+            <Form>     
+                <div>
+                    <label>Usuario </label><br />
+                    <input type="text" 
+                            id="usuario"                         
+                            name = "usuario"
+                            value= {usuario}                                
+                            onChange={ (e) => setUsuario(e.target.value)}
+                            />
+                </div>
+                <br /> 
+
+                <div>
+                    <label>Pass </label><br />
+                    <input type="password" 
+                            id="pass"                         
+                            name = "pass"
+                            value= {pass}                                
+                            onChange={ (e) => setPass(e.target.value)}
+                            />
+                </div>
+                <br /> 
+
+                <Button basic color='green' inverted  onClick={ () => handleSubmit() } >
+                        Login
+                </Button>
+
+            </Form>
+        </>
+        )
+    }
+
+
+    const listaOpciones = () => {
+        
+        return (
+            <>
+
+               <ul className="mainnav">                 
+                    <li><Link  to="/test">test</Link></li>                     
+                    <li><Link  to="/test">test</Link></li>                     
+                    <li><Link  to="/test">test</Link></li>                     
+                    <li><Link  to="/test">test</Link></li>   
+                    {
+                         nombreusuario == '' 
+                         ? null
+                         : (<li>Welcome {nombreusuario}</li>)
+                    }          
+                </ul>
+
+
+          
+        </>
+        )
+    }
+
+
+    return  (
+        <Menu
+            size="large"
+            inverted
+            fixed="left"
+            vertical
+            style={{ background: '#4c4c4c', fontSize: '1.2rem'}}
+        >
+
+{
+            nombreusuario == ''
+            ? formLogin()
+            : listaOpciones()
+        }
+
+        
+            
+
+        </Menu>
+    )
+}
+
+
+export default SidePanel
