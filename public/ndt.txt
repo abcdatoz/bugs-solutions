@@ -1,155 +1,102 @@
-
-import { FC } from 'react';
-import { Navigate } from 'react-router-dom';
-
-interface PropType {
-    component: React.FC;
-}
-
-const PrivateRoute: FC<PropType> = ({ component: Component }) => {    
-    let token = sessionStorage.getItem("tokenid")    
-
-    if (token != null) return <Component />;
-    return <Navigate to='/login' />;
-};
-
-export default PrivateRoute;
-
-****************************************
-import  {Component} from 'react'
-import { Route, Routes } from 'react-router-dom';
-
-import LeyIngresos from './components/Presupuestos/LeyIngresos'; 
-import 'semantic-ui-css/semantic.min.css';
-import LeyIngresosAmpliaciones from './components/Presupuestos/LeyIngresosAmpliaciones'; 
-import LeyIngresosReducciones from './components/Presupuestos/LeyIngresosReducciones'; 
-import LeyIngresosModificada from './components/Presupuestos/LeyIngresosModificada'; 
-import { MomentosContablesIngresos} from './components/Presupuestos/MomentosContablesIngresos'; 
-
-import PresupuestoEgresos from './components/Presupuestos/PresupuestoEgresos'; 
-import PresupuestoEgresosAmpliaciones from './components/Presupuestos/PresupuestoEgresosAmpliaciones'; 
-import PresupuestoEgresosReducciones from './components/Presupuestos/PresupuestoEgresosReducciones'; 
-import PresupuestoEgresosModificado from './components/Presupuestos/PresupuestoEgresosModificado'; 
-import { MomentosContablesEgresos} from './components/Presupuestos/MomentosContablesEgresos'; 
-
-import OrigenesBancos from './components/AuditoriaFinanciera/Bancos/OrigenesBancos'
-import ChequesEmitidos from './components/AuditoriaFinanciera/Bancos/ChequesEmitidos';
-import IngresosEgresos from './components/AuditoriaFinanciera/IngresosEgresos';
-import ResumenMomentosPresupuestales from './components/AuditoriaFinanciera/ResumenMomentosPresupuestales';
-
-import NotFound from './components/NotFound'
-import InformacionDePagos from './components/AuditoriaFinanciera/Bancos/InformacionDePagos';
-import PagosDirectos from './components/AuditoriaFinanciera/Bancos/PagosDirectos';
-import CuentasPorCobrar from './components/AuditoriaFinanciera/CuentasPorCobrar/CuentasPorCobrar';
-import CuentasPorCobrarAuxiliares from './components/AuditoriaFinanciera/CuentasPorCobrar/CuentasPorCobrarAuxiliares';
+appsetting
 
 
-import ObraDetalle from './components/AuditoriaObra/ObraDetalle';
-import ListadoObras  from './components/AuditoriaObra/ListadoObras';
-import MovimientosObras  from './components/AuditoriaObra/MovimientosObras';
-import AnticiposObras  from './components/AuditoriaObra/AnticiposObras';
-import AdministracionDirecta  from './components/AuditoriaObra/AdministracionDirecta';
-
-import ObrasPorContrato  from './components/Cedulas/ObrasPorContrato/ObrasPorContrato';
-import ObrasPorAD  from './components/Cedulas/ObrasPorAD/ObrasPorAD';
-import A01  from './components/Cedulas/A01/A01';
-import A20  from './components/Cedulas/A20';
-import A23  from './components/Cedulas/A23';
-import A24  from './components/Cedulas/A24';
-import G20 from './components/Cedulas/G20/G20';
-import G31 from './components/Cedulas/G31/G31';
-import DeudaYObligaciones from './components/Cedulas/DeudaYObligaciones/DeudaYObligaciones';
+  "connectionStrings": {
+     "cnnx": "Data source=user_control_db.db",     
+     "xxx":"Server=SRVBD;Database=controldeusuarios;User Id=usr_controlusuarios;Password=U5u@ri0s2023; encrypt=false",
+     "zzzz": "Server=.\\sqlexpress19;Database=fullcontrol;User Id=sa;Password=orfisDev$13; encrypt=false",
+     "cnnxSqlServer": "Server=10.0.230.82;Database=AuditoriaSigmaver2023T2;User Id=sa;Password=+Y^n9Uj+[S; encrypt=false"
+  },
+  
 
 
-import UserPanel  from './components/SidePanel/UserPanel';
-import PrivateRoute  from './components/Acceso/PrivateRoute';
-import Login  from './components/Acceso/Login';
-import { PolizasIngresosEgresos } from './components/Evaluacion/PolizasIngresosEgresos';
-import { IntegracionDeSaldos } from './components/Evaluacion/IntegracionDeSaldos';
-import SaldosOrigenesRecursos from './components/Evaluacion/SaldosOrigenesRecursos';
-import ComparativoBalanzasComprobacion from './components/Evaluacion/ComparativoBalanzasComprobacion';
+startup
+
+ public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddControllers(action => {  action.ReturnHttpNotAcceptable = true;}).AddFluentValidation (cfg => cfg.RegisterValidatorsFromAssemblyContaining<Create>())    
+                // .AddXmlDataContractSerializerFormatters()
+                .AddNewtonsoftJson()
+                .AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = null);
+
+            string connectionString = "Server=.\\sqlexpress19;Database=audit;User Id=sa;Password=orfisDev$13; encrypt=false";            
+            //string mycnnxString = "Server=localhost;User ID=root;Password=W3st3rn;Database=audit";
+
+            services.AddDbContext<MyContext>(o => {            
+                 o.UseSqlServer(connectionString);                
+                //o.UseMySql(mycnnxString, new MySqlServerVersion(new Version()));
+            });
+
+
+            
+
+            services.AddCors(opt => {
+                opt.AddPolicy("CorsPolicy", 
+                policy => {
+                    policy
+                        .WithOrigins(_configuration["CorsAllow:port"])
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                        
+                }
+                );
+            });
 
 
 
+mycontext
+using System;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using sigmaAuditor.Context;
+using sigmaAuditor.Entities;
 
 
+namespace sigmaAuditor.Context
+{
+    
+    public class MyContext: DbContext
+    {
+
+        public MyContext(DbContextOptions<MyContext> options): base(options)
+        {
+
+            try{
+
+                    var databaseCreator =Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator;
+
+                    if (databaseCreator != null) {
+                        if (!databaseCreator.CanConnect()) databaseCreator.Create();
+
+                        //if (!databaseCreator.HasTables())  databaseCreator.CreateTables();
+                    }
+                
+            }catch(Exception ex ){
+                Console.WriteLine(ex.Message);
+            }
+            
+        }
+
+        public DbSet<Sistema> Sistemas { get; set; }
+        public DbSet<Modulo> Modulos { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
+        
+
+      
  
-
-class App extends Component  {
-
-
-  render () {
-
-    return (
-      <>
-      <Routes>        
         
-        <Route path="/leyingresos" element ={<PrivateRoute component={LeyIngresos}  />} />
-        <Route path="/leyingresosAmpliaciones" element ={<PrivateRoute component={LeyIngresosAmpliaciones}  />} />
-        <Route path="/leyingresosReducciones" element ={<PrivateRoute component={LeyIngresosReducciones}  />} />
-        <Route path="/leyingresosModificada" element ={<PrivateRoute component={LeyIngresosModificada}  />} />
-        <Route path="/momentosContablesIngresosMensuales" element ={< MomentosContablesIngresos hastaElMes={0} />} />
-        <Route path="/momentosContablesIngresosAcumulados" element ={<MomentosContablesIngresos hastaElMes={1}/>} />
-
-        <Route path="/presupuestoegresos" element ={<PrivateRoute component={PresupuestoEgresos}  />} />
-        <Route path="/presupuestoegresosAmpliaciones" element ={<PrivateRoute component={PresupuestoEgresosAmpliaciones}  />} />
-        <Route path="/presupuestoegresosReducciones" element ={<PrivateRoute component={PresupuestoEgresosReducciones}  />} />
-        <Route path="/presupuestoegresosModificado" element ={<PrivateRoute component={PresupuestoEgresosModificado}  />} />
-        <Route path="/momentosContablesEgresosMensuales" element ={<MomentosContablesEgresos hastaElMes={0}  />} />
-        <Route path="/momentosContablesEgresosAcumulados" element ={<MomentosContablesEgresos hastaElMes={1}/>} />
-       
-        <Route path="/bancosOrigenesBancos" element ={<PrivateRoute component={OrigenesBancos}   />} />
-        <Route path="/bancosChequesEmitidos" element ={<PrivateRoute component={ChequesEmitidos}   />} />
-        <Route path="/bancosInformacionDePagos" element ={<PrivateRoute component={InformacionDePagos}   />} />
-        <Route path="/bancosPagosDirectos" element ={<PrivateRoute component={PagosDirectos}   />} />
-
-        <Route path="/cuentasPorCobrar" element ={<PrivateRoute component={CuentasPorCobrar}   />} />
-        <Route path="/cuentasPorCobrarAuxiliares" element ={<PrivateRoute component={CuentasPorCobrarAuxiliares}   />} />
-        <Route path="/auditoriafinancieraIngresosEgresos" element ={<PrivateRoute component={IngresosEgresos}   />} />
-        <Route path="/auditoriafinancieraResumenMomentosPresupuestales" element ={<PrivateRoute component={ResumenMomentosPresupuestales}   />} />
-
-        <Route path="/auditoriaObraDetalle" element ={<PrivateRoute component={ObraDetalle}  />} />
-        <Route path="/auditoriaObraListadoObras" element ={<PrivateRoute component={ListadoObras}   />} />
-        <Route path="/auditoriaObraMovimientoObra" element ={<PrivateRoute component={MovimientosObras}   />} />
-        <Route path="/auditoriaObraAnticipos" element ={<PrivateRoute component={AnticiposObras}   />} />
-        <Route path="/auditoriaObraAdministracionDirecta" element ={<PrivateRoute component={AdministracionDirecta}   />} />
-
-        <Route path="/obrasporcontrato" element ={<PrivateRoute component={ObrasPorContrato}/>} />
-        <Route path="/obrasporAD" element ={<PrivateRoute component={ObrasPorAD}  />} />
-        <Route path="/a01" element ={<PrivateRoute component={A01}  />} />
-        <Route path="/a20" element ={<PrivateRoute component={A20}  />} />
-        <Route path="/a23" element ={<PrivateRoute component={A23} />} />
-        <Route path="/a24" element ={<PrivateRoute component={A24} />} />
-        <Route path="/g20" element ={<PrivateRoute component={G20}  />} />
-        <Route path="/g31" element ={<PrivateRoute component={G31}  />} />
-        <Route path="/deudasyobligaciones" element ={<PrivateRoute component={DeudaYObligaciones}  />} />
-
-        
-        <Route path="/user" element ={<UserPanel  />} />
-        <Route path="/login" element ={<Login  />} />
-
-
-        <Route path="/polizasIngresosEgresos" element ={<PolizasIngresosEgresos  />} />
-        <Route path="/integracionSaldos" element ={<IntegracionDeSaldos  />} />
-        <Route path="/saldosOrigenesRecurso" element ={<SaldosOrigenesRecursos  />} />
-        <Route path="/comparativoBalanzaComprobacion" element ={<ComparativoBalanzasComprobacion  />} />
-
-        <Route element ={ <NotFound /> } />
-      </Routes>
-       
-        
-        
-      </>
-      )
-  } 
+    }
 }
 
-export default App;
+
+https://developer.android.com/codelabs/jetpack-compose-layouts?hl=es-419&continue=https%3A%2F%2Fdeveloper.android.com%2Fcourses%2Fpathways%2Fcompose%3Fhl%3Des-419%23codelab-https%3A%2F%2Fdeveloper.android.com%2Fcodelabs%2Fjetpack-compose-layouts#0
 
 
 
+login
 
-******************************************
+
 
 import React from 'react'
 import { useState, useEffect} from 'react';
@@ -172,10 +119,9 @@ const Login = () => {
             if (data.login == 'NotFound'){                
                 alert('El usuario y contrase;a no coinciden')
             }else{
-
-
-                console.log(data)
+                
                 sessionStorage.setItem("tokenid", data.nombre)
+                sessionStorage.setItem("activeuser", usuario)
                 setUsuario('')
                 setPass('')
                 navigate("/");
@@ -221,42 +167,147 @@ export default Login;
 
 
 
-*******************
 
 
 
+
+index
+
+
+
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
+  
+    <BrowserRouter>
+      <Menu />
+      <br></br>
+      <App />
+    </BrowserRouter>
+
+ 
+);
+
+
+
+
+
+
+
+menu
 
 import { useEffect, useState } from 'react'
 import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap'
-
+import Opciones, { IOpcion } from './Opciones'
+import agent from '../../api/agent';
+import { IModulos } from '../../interfaces/ControlUsuarios/IModulos';
 
 const Menu = () => {
 
     const [token, setToken] = useState<string|null>(null)
-
-    useEffect(() => {
-      
-        let token = sessionStorage.getItem("tokenid")
+ 
     
-        setToken(token)
+    
+
+    const [opcionesLeyIngresos, setOpcionesLeyIngresos] = useState<IOpcion[]>([]);
+    const [opcionesPresupuestoEgresos, setOpcionesPresupuestoEgresos] = useState<IOpcion[]>([]);
+    
+    const [opcionesBancos, setOpcionesBancos] = useState<IOpcion[]>([]);
+    const [opcionesCuentasPorCobrar, setOpcionesCuentasPorCobrar] = useState<IOpcion[]>([]);
+    const [opcionesIngresosEgresos, setOpcionesIngresosEgresos] = useState<IOpcion[]>([]);
+    const [opcionesFondosObtenidos, setOpcionesFondosObtenidos] = useState<IOpcion[]>([]);
+    
+    const [opcionesAuditoriaObras, setOpcionesAuditoriaObras] = useState<IOpcion[]>([]);
+    const [opcionesEvaluacion, setOpcionesEvaluacion] = useState<IOpcion[]>([]);
+    const [opcionesCedulas, setOpcionesCedulas] = useState<IOpcion[]>([]);
+    const [opcionesCedulasASF, setOpcionesCedulasASF] = useState<IOpcion[]>([]);
+
+    useEffect(() => {      
+        
+        let tkn = sessionStorage.getItem("tokenid")    
+        setToken(tkn)
       
+        let activeuser: String | null = sessionStorage.getItem("activeuser")            
+
+        if (activeuser != null){
+
+        
+            agent.Sistemas.modulos(activeuser).then((response) => {                        
+                
+                defragmentaOpciones(response,7, setOpcionesLeyIngresos)// ley de ingresos
+                defragmentaOpciones(response,8, setOpcionesPresupuestoEgresos)//presupuesto de egresos
+                
+                defragmentaOpciones(response,21, setOpcionesBancos)//bancos
+                defragmentaOpciones(response,22, setOpcionesCuentasPorCobrar)//cuentas por cobrar            
+                defragmentaOpciones(response,23, setOpcionesIngresosEgresos)//ingresos y egresos
+                defragmentaOpciones(response,24, setOpcionesFondosObtenidos)//fondos obtenidos
+                
+                defragmentaOpciones(response,3, setOpcionesAuditoriaObras)//auditoria obras
+                defragmentaOpciones(response,4, setOpcionesEvaluacion)//evaluacion
+                defragmentaOpciones(response,5, setOpcionesCedulas)//cedulas
+                defragmentaOpciones(response,6, setOpcionesCedulasASF)//cedulas ASF
+
+            })
+        }
+
+        
+
+
     }, [])
     
 
+    const defragmentaOpciones = ( registros: IModulos[], dependede: any, seter:  React.Dispatch<IOpcion[]>)  => {
+
+        let opciones = registros
+                            .filter( p => p.superId == dependede)
+                            .map((q) => {
+                                            return {
+                                                url: q.url, 
+                                                nombre: q.nombre
+                                                }
+                            } )
+
+        seter(opciones)
+
+        
+
+    }
+
     const removeSSS = () => {
         sessionStorage.removeItem("tokenid")        
+        sessionStorage.removeItem("activeuser")        
+
         setToken(null)
         window.location.reload();
       }
 
-      
+      const opcionesConfiguracion : IOpcion[] = [
+        {url : '/accesosPorArea',nombre : 'Accesos por area'},
+        {url : '/accesosPorTipo',nombre : 'Accesos por tipo usuario'},
+        {url : '/usuarios',nombre : 'Usuarios'}
+      ]
+  
+      const CargarOpcionesMenu = (titulo: string, arr: IOpcion[]) => (
+                
+            arr.length
+                ? (
+                    <>  
+                        <Opciones titulo={titulo} opciones={arr} />  
+                    </>
+                ): null
+        
+      )
+ 
+ 
 
     return (
         <Navbar expand='lg' className='bg-body-tertiary'>
             <Container>
 
                 <Navbar.Brand href='/'>
-                    SIGMA auditor                     
+                    SIGMA Auditor                     
                 </Navbar.Brand>
     
                 <Navbar.Toggle aria-controls='responsive-navbar-nav'/>
@@ -274,93 +325,53 @@ const Menu = () => {
                                 )
                                 : (
                                     <>
-                                    <NavDropdown title='Presupuesto' id='collasible-nav-dropdown'>
-                                    <NavDropdown title='Ley de Ingresos' id='collasible-nav-dropdown'>
-                                        <NavDropdown.Item href='/leyingresos'>calendario LI aprobada</NavDropdown.Item>
-                                        <NavDropdown.Item href='/leyingresosReducciones'>reducciones</NavDropdown.Item>
-                                        <NavDropdown.Item href='/leyingresosAmpliaciones'>ampliaciones</NavDropdown.Item>
-                                        <NavDropdown.Item href='/leyingresosModificada'>calendario LI modificada</NavDropdown.Item>
-                                        <NavDropdown.Item href='/momentosContablesIngresosAcumulados'>momentos contables de los ingresos AL mes</NavDropdown.Item>
-                                        <NavDropdown.Item href='/momentosContablesIngresosMensuales'>momentos contables de los ingresos DEL mes</NavDropdown.Item>
-                                    </NavDropdown>
-                                    <NavDropdown title='Presupuesto de Egresos' id='collasible-nav-dropdown'>
-                                        <NavDropdown.Item href='/presupuestoegresos'>calendario PE aprobado</NavDropdown.Item>
-                                        <NavDropdown.Item href='/presupuestoegresosReducciones'>reducciones</NavDropdown.Item>
-                                        <NavDropdown.Item href='/presupuestoegresosAmpliaciones'>ampliaciones</NavDropdown.Item>
-                                        <NavDropdown.Item href='/presupuestoegresosModificado'>calendario PE modificado</NavDropdown.Item>
-                                        <NavDropdown.Item href='/momentosContablesEgresosAcumulados'>momentos contables de los egresos AL mes</NavDropdown.Item>
-                                        <NavDropdown.Item href='/momentosContablesEgresosMensuales'>momentos contables de los egresos DEL mes</NavDropdown.Item>
-                                    </NavDropdown>
-                
-                                    <NavDropdown.Divider />                            
-                                </NavDropdown>
-        
-                                <NavDropdown title='Auditoria Financiera' id='collasible-nav-dropdown'>
-                                    <NavDropdown title='Bancos' id='collasible-nav-dropdown'>
-                                        <NavDropdown.Item href='/bancosOrigenesBancos'>Origenes de Bancos</NavDropdown.Item>
-                                        <NavDropdown.Item href='/bancosChequesEmitidos'>Cheques Emitidos</NavDropdown.Item>
-                                        <NavDropdown.Item href='/bancosInformacionDePagos'>Información de pagos</NavDropdown.Item>
-                                        <NavDropdown.Item href='/bancosPagosDirectos'>Pagos directos</NavDropdown.Item>                                
-                                    </NavDropdown>
-                                    <NavDropdown title='Cuentas por cobrar' id='collasible-nav-dropdown'>
-                                        <NavDropdown.Item href='/cuentasPorCobrar'>Cuentas por cobrar</NavDropdown.Item>
-                                        <NavDropdown.Item href='/cuentasPorCobrarAuxiliares'>Cuentas por cobrar auxiliar</NavDropdown.Item>                                
-                                    </NavDropdown>
-        
-                                    <NavDropdown title='Ingresos y Egresos' id='collasible-nav-dropdown'>
-                                        <NavDropdown.Item href='/auditoriafinancieraIngresosEgresos'>ingresos y egresos</NavDropdown.Item>                                
-                                    </NavDropdown>                            
-        
-                                    <NavDropdown title='Fondos obtenidos y aplicados' id='collasible-nav-dropdown'>
-                                        <NavDropdown.Item href='/auditoriafinancieraResumenMomentosPresupuestales'>Resumen de momentos</NavDropdown.Item>                                
-                                    </NavDropdown>                            
-                                    
-                                </NavDropdown>
-        
-                                <NavDropdown title='Auditoria Obra' id='collasible-nav-dropdown'>
-                                    <NavDropdown.Item href='/auditoriaObraDetalle'>Obra Detalle</NavDropdown.Item>
-                                    <NavDropdown.Item href='/auditoriaObraListadoObras'>Listado de Obras</NavDropdown.Item>
-                                    <NavDropdown.Item href='/auditoriaObraMovimientoObra'>Movimientos de obra</NavDropdown.Item>
-                                    <NavDropdown.Item href='/auditoriaObraAnticipos'>Anticipos de obra</NavDropdown.Item>                                
-                                    <NavDropdown.Item href='/auditoriaObraAdministracionDirecta'>Obras por AD (Formato 7)</NavDropdown.Item>                                                            
-                                </NavDropdown>
-        
-                                <NavDropdown title='Evaluación' id='collasible-nav-dropdown'>
-                                <NavDropdown.Item href='/polizasIngresosEgresos'>Pólizas de ingresos y egresos</NavDropdown.Item>
-                                <NavDropdown.Item href='/integracionSaldos'>Integración de saldos</NavDropdown.Item>
-                                <NavDropdown.Item href='/comparativoBalanzaComprobacion'>Comparativo en balanzas de comprobación</NavDropdown.Item>
-                                <NavDropdown.Item href='/saldosOrigenesRecurso'>Saldos de origenes de recursos</NavDropdown.Item>                                                            
-                                </NavDropdown>
-        
-                                <NavDropdown title='Cédulas' id='collasible-nav-dropdown'>
-                                    <NavDropdown.Item href='/obrasporcontrato'>Obras por contrato</NavDropdown.Item>
-                                    <NavDropdown.Item href='/obrasporAD'>Obras por AD</NavDropdown.Item>
-                                    <NavDropdown.Item href='/a01'>A01 detalle del ejercicio presupuestal</NavDropdown.Item>
-                                    <NavDropdown.Item href='/a20'>A20 revision de egresos</NavDropdown.Item>                                
-                                    <NavDropdown.Item href='/a23'>A23 plantilla de personal</NavDropdown.Item>                                                            
-                                    <NavDropdown.Item href='/a24'>A24 servicios personales</NavDropdown.Item>                                                                                                                                    
-                                    <NavDropdown.Item href='/g20'>G20 lista de raya</NavDropdown.Item>                                                            
-                                    <NavDropdown.Item href='/g31'>G31 gastos de publicidad</NavDropdown.Item>                                                            
-                                    <NavDropdown.Item href='/deudasyobligaciones'>Deuda y otras obligaciones</NavDropdown.Item>                                                            
-                                </NavDropdown>
-        
-                                <NavDropdown title='Cédulas ASF' id='collasible-nav-dropdown'>
-                                    <NavDropdown.Item href='#'>Cédulas ASF 001</NavDropdown.Item>
-                                    <NavDropdown.Item href='#'>Cédulas ASF 002</NavDropdown.Item>
-                                    <NavDropdown.Item href='#'>Cédulas ASF 003</NavDropdown.Item>
-                                    <NavDropdown.Item href='#'>Cédulas ASF 004</NavDropdown.Item>
-                                    <NavDropdown.Item href='#'>Cédulas ASF 005</NavDropdown.Item>
-                                    <NavDropdown.Item href='#'>Cédulas ASF 006</NavDropdown.Item>
-                                    <NavDropdown.Item href='#'>Cédulas ASF 007</NavDropdown.Item>
-                                    <NavDropdown.Item href='#'>Cédulas ASF 008</NavDropdown.Item>
-                                    <NavDropdown.Item href='#' onClick={removeSSS}>Cédulas ASF 009</NavDropdown.Item>
-                                    
-                                </NavDropdown>
+                                        {
+                                            opcionesLeyIngresos.length || opcionesPresupuestoEgresos.length
+                                                ? (
+                                                    <NavDropdown title='Presupuesto' id='collasible-nav-dropdown'>                                        
+                                                        { CargarOpcionesMenu ("Ley de Ingresos",        opcionesLeyIngresos)}
+                                                        { CargarOpcionesMenu ("Presupuesto de Egresos", opcionesPresupuestoEgresos)}                                        
+                                                    </NavDropdown>                                
+                                                ): null
+                                        }
 
-                                
-                                <NavDropdown  title={token} id='collasible-nav-dropdown'>                                                                        
-                                    <NavDropdown.Item href='#' onClick={removeSSS}>Cerrar Sesión</NavDropdown.Item>                                    
-                                </NavDropdown>
+                                        {
+                                            opcionesBancos.length           ||
+                                            opcionesCuentasPorCobrar.length ||
+                                            opcionesIngresosEgresos.length  ||
+                                            opcionesFondosObtenidos.length
+                                                ? (
+                                                        <NavDropdown title='Auditoria Financiera' id='collasible-nav-dropdown'>
+
+                                                            { CargarOpcionesMenu ("Bancos",                         opcionesBancos)}
+                                                            { CargarOpcionesMenu ("Cuentas por Cobrar",             opcionesCuentasPorCobrar)}
+                                                            { CargarOpcionesMenu ("Ingresos y Egresos",             opcionesIngresosEgresos  )}
+                                                            { CargarOpcionesMenu ("Fondos obtenidos y aplicados",   opcionesFondosObtenidos  )}
+                
+                                                        </NavDropdown>
+                                                        
+                                                ) : null
+
+
+                                        }
+                                        
+            
+
+            
+                                        { CargarOpcionesMenu ("Auditoria Obra", opcionesAuditoriaObras)}
+                                        { CargarOpcionesMenu ("Evaluación",     opcionesEvaluacion)}
+                                        { CargarOpcionesMenu ("Cédulas",        opcionesCedulas  )}
+                                        { CargarOpcionesMenu ("Cédulas ASF",    opcionesCedulasASF  )}
+                             
+                                        
+                                        
+                                        
+                                                                                
+                                        <Opciones titulo='Configuración' opciones={opcionesConfiguracion} ></Opciones>
+                                        
+                                        <NavDropdown  title={token} id='collasible-nav-dropdown'>                                                                        
+                                            <NavDropdown.Item href='#' onClick={removeSSS}>Cerrar Sesión</NavDropdown.Item>                                    
+                                        </NavDropdown>
 
                                 </>
 
@@ -371,7 +382,8 @@ const Menu = () => {
                     </Nav>
     
                 </Navbar.Collapse>
-    
+
+         
             </Container>
         </Navbar>
     )
@@ -382,9 +394,22 @@ export default Menu
 
 
 
+import { Container, Row } from 'react-bootstrap'
+import logo from './logo.png'
 
 
+const Home = () => {
 
+     
 
+    return (
+            <Container>
+                 <Row className="justify-content-center">
+                 <img src={logo} alt="Logo" />
+                </Row>
+            </Container>
+    
+    )
+}
 
-
+export default Home
