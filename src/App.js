@@ -12,6 +12,8 @@ import Hello from './components/Hello'
 import Bug from './components/Bug'
 import Solution from './components/Solutions'
 import Beneficios from './components/Beneficios'
+import CategoriaPlatillo from './components/CategoriaPlatillo/CategoriaPlatillo'
+import Platillo from './components/Platillo/Platillo'
 
 import { Route, Switch, } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
@@ -39,11 +41,13 @@ function App() {
           <PrivateRoute exact path="/bugs" component={Bug} />
           <PrivateRoute exact path="/solutions" component={Solution} />
           <PrivateRoute exact path="/beneficios" component={Beneficios} />
+          <PrivateRoute exact path="/catPlatillos" component={CategoriaPlatillo} />
+          <PrivateRoute exact path="/platillos" component={Platillo} />
         </Switch>
 
       </div>
       
-      <button onClick={notify}>Notify!</button>
+      
 
       <ToastContainer />
 

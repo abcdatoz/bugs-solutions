@@ -194,7 +194,7 @@ const Bug = () => {
 
 
 
-            {/* <MyModal basic open={selectedModal}>
+            <MyModal basic open={selectedModal}>
                         <MyModal.Header>Editar oficio </MyModal.Header>
                         <MyModal.Content>
                             <Form>     
@@ -247,15 +247,15 @@ const Bug = () => {
                             </Button>            
                         </MyModal.Actions>    
 
-                    </MyModal> */}
+                    </MyModal>
 
 
-                    <MyModal
+                    {/* <MyModal
                     trigger={<Button>Show Modal</Button>}
                     header='Reminder!'
                     content='Call Benjamin regarding the reports.'
                     actions={['Snooze', { key: 'done', content: 'Done', positive: true }]}
-                    />
+                    /> */}
             
         </>        
     )

@@ -7,6 +7,8 @@ import solutions from './solutionsReducer'
 import datos from './datosReducer'
 import beneficios from './beneficiosReducers'
 import wallets from './walletsReducer'
+import catPlatillos from './categoriasPlatillosReducer'
+import platillos from './platillosReducer'
 
 export default combineReducers({
     auth,
@@ -15,4 +17,6 @@ export default combineReducers({
     datos,
     beneficios, 
     wallets,
+    catPlatillos,
+    platillos
 })

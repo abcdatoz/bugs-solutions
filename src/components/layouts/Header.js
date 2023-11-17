@@ -22,6 +22,8 @@ class Header extends Component {
                 <li><Link  to="/">Home</Link></li>
                 <li><Link  to="/bugs">Bugs</Link></li>                                                
                 <li><Link  to="/beneficios">Benefits</Link></li>                                                
+                <li><Link  to="/catPlatillos">Categorias</Link></li>                                                
+                <li><Link  to="/platillos">Platillos</Link></li>                                                
 
                 <li>
                     <span><strong>{username ? `Usuario:  ${username}` : ""}</strong></span>                                                           
