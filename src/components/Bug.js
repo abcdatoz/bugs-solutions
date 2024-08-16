@@ -114,7 +114,7 @@ const Bug = () => {
     const modolista = (
         <>
 
-                <a href="#" className="y-btn" onClick={ () => { openModal()   }}>+ </a>   
+                <a href="#" className="y-btn" onClick={ () => { add()   }}>+ </a>   
 
                 <table>
                     <thead>
@@ -184,11 +184,7 @@ const Bug = () => {
             {
                 bugsMode === 'list' 
                 ? modolista
-                : (
-                    <div>asd</div>
-                   
-                
-                    )
+                : (<BugForm id={bugId}  />)
 
             }
 

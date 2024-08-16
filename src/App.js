@@ -1,4 +1,5 @@
-import './App.css';
+//import './App.css';
+import 'semantic-ui-css/semantic.min.css'
 
 import Header from  './components/layouts/Header'
 
@@ -7,7 +8,7 @@ import PrivateRoute from './components/common/PrivateRoute'
 import Login from './components/accounts/Login'
 import Register from './components/accounts/Register'
 
-import Home from './components/Home'
+import Home3 from './components/Home3'
 import Hello from './components/Hello'
 import Bug from './components/Bug'
 import Solution from './components/Solutions'
@@ -33,7 +34,7 @@ function App() {
 
       <div className='container'>
         <Switch>
-          <Route exact path="/" component={Home} />
+          <Route exact path="/" component={Home3} />
           <Route exact path="/register" component={Register} />
           <Route exact path="/login" component={Login} />
 

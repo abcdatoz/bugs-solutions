@@ -4,6 +4,8 @@ import {getDatos} from '../actions/datosActions'
 import Modal from './Modal.js';
 import ModalTwo from './ModalTwo';
 
+
+
 import {getBugs,addBug, editBug,  setBugMode} from '../actions/bugsActions'
 
 import Form, { FormContext } from './common/Form'
@@ -97,7 +99,7 @@ const Home = () => {
       
       this app will serve for...     
        
-
+      
           
 
 
