@@ -100,186 +100,186 @@ const Home3 = () => {
 }
 
 
-const Estado = sequelize.define("estado",{
+// const Estado = sequelize.define("estado",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  clave:    { type: Sequelize.STRING }, 
-  nombre:    { type: Sequelize.STRING },
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   clave:    { type: Sequelize.STRING }, 
+//   nombre:    { type: Sequelize.STRING },
   
-});
+// });
 
 
-const Torneo = sequelize.define("torneo",{
+// const Torneo = sequelize.define("torneo",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  //estado = models.ForeignKey(Estado, on_delete=models.SET_NULL, null=True)
-  localidad:    { type: Sequelize.STRING }, 
-  nombre:    { type: Sequelize.STRING },
-  status:    { type: Sequelize.STRING },
-  imagen:    { type: Sequelize.STRING },
-  user_owner:    { type: Sequelize.INTEGER },
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   //estado = models.ForeignKey(Estado, on_delete=models.SET_NULL, null=True)
+//   localidad:    { type: Sequelize.STRING }, 
+//   nombre:    { type: Sequelize.STRING },
+//   status:    { type: Sequelize.STRING },
+//   imagen:    { type: Sequelize.STRING },
+//   user_owner:    { type: Sequelize.INTEGER },
   
-});
+// });
 
 
 
-const Grupo = sequelize.define("grupo",{
+// const Grupo = sequelize.define("grupo",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  //torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)    
-  nombre:    { type: Sequelize.STRING },        
-  torneo_owner:    { type: Sequelize.STRING },
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   //torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)    
+//   nombre:    { type: Sequelize.STRING },        
+//   torneo_owner:    { type: Sequelize.STRING },
   
-});
+// });
 
-const Equipo = sequelize.define("equipo",{
+// const Equipo = sequelize.define("equipo",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)
-  // grupo = models.ForeignKey(Grupo, on_delete=models.SET_NULL, null=True)
-  nombre:    { type: Sequelize.STRING },        
-  nombre_contacto:    { type: Sequelize.STRING },        
-  correo_contacto:    { type: Sequelize.STRING },        
-  telefono_contacto:    { type: Sequelize.STRING },        
-  status:    { type: Sequelize.STRING },        
-  torneo_owner:    { type: Sequelize.STRING },
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)
+//   // grupo = models.ForeignKey(Grupo, on_delete=models.SET_NULL, null=True)
+//   nombre:    { type: Sequelize.STRING },        
+//   nombre_contacto:    { type: Sequelize.STRING },        
+//   correo_contacto:    { type: Sequelize.STRING },        
+//   telefono_contacto:    { type: Sequelize.STRING },        
+//   status:    { type: Sequelize.STRING },        
+//   torneo_owner:    { type: Sequelize.STRING },
   
-});
+// });
 
 
-const EquipoFoto = sequelize.define("equipoFoto",{
+// const EquipoFoto = sequelize.define("equipoFoto",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  //equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True)        
-  imagen:    { type: Sequelize.STRING },              
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   //equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True)        
+//   imagen:    { type: Sequelize.STRING },              
   
-});
+// });
 
-const EquipoEscudo = sequelize.define("equipoEscudo",{
+// const EquipoEscudo = sequelize.define("equipoEscudo",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  //equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True)        
-  imagen:    { type: Sequelize.STRING },              
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   //equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True)        
+//   imagen:    { type: Sequelize.STRING },              
   
-});
+// });
 
-const Jugador = sequelize.define("jugador",{
+// const Jugador = sequelize.define("jugador",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)
-  // equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True)    
-  nombre:    { type: Sequelize.STRING },              
-  status:    { type: Sequelize.STRING },              
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)
+//   // equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True)    
+//   nombre:    { type: Sequelize.STRING },              
+//   status:    { type: Sequelize.STRING },              
   
-});
+// });
 
-const Jornada = sequelize.define("jornada",{
+// const Jornada = sequelize.define("jornada",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)        
-  nombre:    { type: Sequelize.STRING },              
-  inicia:    { type: Sequelize.DATE },              
-  termina:    { type: Sequelize.DATE },              
-  aviso:    { type: Sequelize.STRING },              
-  status:    { type: Sequelize.STRING },                      
-});
-
-
-const Juego = sequelize.define("juego",{
-
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)    
-  // jornada = models.ForeignKey(Jornada, on_delete=models.SET_NULL, null=True)   
-  equipoA:    { type: Sequelize.UUID },              
-  equipoB:    { type: Sequelize.UUID },              
-  fecha:    { type: Sequelize.DATE },              
-  hora:    { type: Sequelize.INTEGER },              
-  minuto:    { type: Sequelize.INTEGER },              
-  golesA:    { type: Sequelize.INTEGER },              
-  golesB:    { type: Sequelize.INTEGER },              
-  puntosA:    { type: Sequelize.INTEGER },              
-  puntosB:    { type: Sequelize.INTEGER },                      
-  status:    { type: Sequelize.STRING },                      
-});
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)        
+//   nombre:    { type: Sequelize.STRING },              
+//   inicia:    { type: Sequelize.DATE },              
+//   termina:    { type: Sequelize.DATE },              
+//   aviso:    { type: Sequelize.STRING },              
+//   status:    { type: Sequelize.STRING },                      
+// });
 
 
+// const Juego = sequelize.define("juego",{
 
-const Gol = sequelize.define("gol",{
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)    
+//   // jornada = models.ForeignKey(Jornada, on_delete=models.SET_NULL, null=True)   
+//   equipoA:    { type: Sequelize.UUID },              
+//   equipoB:    { type: Sequelize.UUID },              
+//   fecha:    { type: Sequelize.DATE },              
+//   hora:    { type: Sequelize.INTEGER },              
+//   minuto:    { type: Sequelize.INTEGER },              
+//   golesA:    { type: Sequelize.INTEGER },              
+//   golesB:    { type: Sequelize.INTEGER },              
+//   puntosA:    { type: Sequelize.INTEGER },              
+//   puntosB:    { type: Sequelize.INTEGER },                      
+//   status:    { type: Sequelize.STRING },                      
+// });
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
-  // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)    
-  // juego = models.ForeignKey(Juego, on_delete=models.SET_NULL, null=True)    
-  // equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True)    
-  // jugador = models.ForeignKey(Jugador, on_delete=models.SET_NULL, null=True)     
-  goles:    { type: Sequelize.INTEGER },              
-  tarjetas_amarillas:    { type: Sequelize.INTEGER },              
-  tarjeta_roja:    { type: Sequelize.INTEGER },              
+
+
+// const Gol = sequelize.define("gol",{
+
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
+//   // torneo = models.ForeignKey(Torneo, on_delete=models.SET_NULL, null=True)    
+//   // juego = models.ForeignKey(Juego, on_delete=models.SET_NULL, null=True)    
+//   // equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True)    
+//   // jugador = models.ForeignKey(Jugador, on_delete=models.SET_NULL, null=True)     
+//   goles:    { type: Sequelize.INTEGER },              
+//   tarjetas_amarillas:    { type: Sequelize.INTEGER },              
+//   tarjeta_roja:    { type: Sequelize.INTEGER },              
               
-});
+// });
 
-const Premio = sequelize.define("premio",{
+// const Premio = sequelize.define("premio",{
 
-  id: {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      allowNull: false,
-      primaryKey: true
-  },        
+//   id: {
+//       type: Sequelize.UUID,
+//       defaultValue: Sequelize.UUIDV4,
+//       allowNull: false,
+//       primaryKey: true
+//   },        
 
-  nombre:    { type: Sequelize.STRING },              
-  cantidad:    { type: Sequelize.INTEGER },                      
+//   nombre:    { type: Sequelize.STRING },              
+//   cantidad:    { type: Sequelize.INTEGER },                      
               
-});
+// });
 
 
 
